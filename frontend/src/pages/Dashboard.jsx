@@ -52,12 +52,15 @@ function Dashboard() {
           console.log("Silent profile fetch issue, using local data", profileError);
         }
 
-        // 2. Fetch AI Recommendations
+        // 2. Fetch AI Recommendations (UPDATED TO NEW AI ROUTE)
         let fetchedIdeas = [];
         if (currentSkills && currentSkills.length > 0) {
           const { data } = await axios.post(
-            'https://entreskill-hub-9r2j.onrender.com/api/recommendations/match', 
-            { userSkills: currentSkills }, 
+            'https://entreskill-hub-9r2j.onrender.com/api/ai/match', // 🔥 AI ROUTE
+            { 
+              skills: currentSkills, 
+              investmentLevel: user?.investmentLevel || 'Any' // Passing data to Gemini
+            }, 
             config
           );
           fetchedIdeas = data.recommendations;
@@ -93,7 +96,7 @@ function Dashboard() {
     setToast({ show: true, message, type });
     setTimeout(() => {
       setToast({ show: false, message: '', type: '' });
-    }, 3000); // 3 second baad apne aap hide ho jayega
+    }, 3000); 
   };
 
   // REAL API BOOKMARK TOGGLE LOGIC
@@ -350,10 +353,24 @@ function Dashboard() {
                 <h3 className="text-2xl font-black text-slate-900 mb-3 group-hover:text-violet-700 transition-colors leading-tight">
                   {idea.title}
                 </h3>
-                <p className="text-slate-500 mb-6 flex-grow leading-relaxed text-[15px] font-medium">
+                <p className="text-slate-500 mb-5 flex-grow leading-relaxed text-[15px] font-medium">
                   {idea.description}
                 </p>
                 
+                {/* 🔥 NEW FEATURE: AI Reasoning Box */}
+                {idea.aiReasoning && (
+                  <div className="bg-violet-50/50 border border-violet-100 rounded-xl p-4 mb-6 flex items-start gap-3">
+                    <div className="bg-violet-200 text-violet-700 p-2 rounded-lg shrink-0 mt-0.5">
+                      <FiZap size={16} className="fill-violet-700" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-extrabold text-violet-800 uppercase tracking-wider mb-1">AI Match Reason</p>
+                      <p className="text-sm font-medium text-violet-900 leading-snug">{idea.aiReasoning}</p>
+                    </div>
+                  </div>
+                )}
+                {/* --------------------------------- */}
+
                 <div className="mt-auto">
                   <div className="mb-6">
                     <div className="flex flex-wrap gap-2">
