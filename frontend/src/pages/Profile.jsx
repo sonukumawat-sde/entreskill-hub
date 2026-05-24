@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios'; // NAYA: API call ke liye axios add kiya
+import axios from 'axios';
 import { 
   FiUser, FiMail, FiBookmark, FiSettings, 
   FiLogOut, FiArrowRight, FiEdit2, FiShield,
   FiActivity, FiStar, FiTrendingUp, FiVideo, 
-  FiCalendar, FiClock, FiAward, FiCheckCircle, FiBell, FiZap
+  FiCalendar, FiClock, FiAward, FiCheckCircle, 
+  FiBell, FiZap, FiBriefcase, FiPlus, FiX
 } from 'react-icons/fi';
 
 function Profile() {
@@ -14,23 +15,32 @@ function Profile() {
   const [activeTab, setActiveTab] = useState('overview');
   const [savedIdeas, setSavedIdeas] = useState([]);
 
+  // 🔥 NAYA: Skills Manager aur API Loading ke liye States
+  const [skillInput, setSkillInput] = useState('');
+  const [editedSkills, setEditedSkills] = useState([]);
+  const [isSaving, setIsSaving] = useState(false);
+
   useEffect(() => {
-    // NAYA: Async function banaya taaki API call kar sakein
     const fetchProfileData = async () => {
       // 1. Fetch User Data
       const userInfo = localStorage.getItem('userInfo');
       if (userInfo) {
-        setUser(JSON.parse(userInfo));
+        const parsedUser = JSON.parse(userInfo);
+        setUser(parsedUser);
+        // User ki pehle se save ki hui skills ko setup karo
+        setEditedSkills(parsedUser.skills || []); 
       } else {
-        // Premium Fallback Data (Using your real name for authentic feel)
-        setUser({
+        // Premium Fallback Data
+        const fallbackUser = {
           name: "Sonu Kumawat",
           email: "sonu@entreskill.com",
           skills: ["Coding", "System Design", "UI/UX"]
-        });
+        };
+        setUser(fallbackUser);
+        setEditedSkills(fallbackUser.skills);
       }
 
-      // 2. Fetch Bookmarked Ideas from Backend (MongoDB)
+      // 2. Fetch Bookmarked Ideas from Backend
       const token = localStorage.getItem('token');
       if (token) {
         try {
@@ -55,6 +65,47 @@ function Profile() {
     navigate('/login');
   };
 
+  // 🔥 NAYA: Nayi skill add karne ka logic
+  const handleAddSkill = () => {
+    if (skillInput.trim() !== '' && !editedSkills.includes(skillInput.trim())) {
+      setEditedSkills([...editedSkills, skillInput.trim()]);
+      setSkillInput('');
+    }
+  };
+
+  // 🔥 NAYA: Skill hatane (delete) ka logic
+  const handleRemoveSkill = (skillToRemove) => {
+    setEditedSkills(editedSkills.filter(skill => skill !== skillToRemove));
+  };
+
+  // 🔥 NAYA: Skills ko Backend mein save karne ka logic
+  const handleSaveChanges = async () => {
+    setIsSaving(true);
+    try {
+      const token = localStorage.getItem('token');
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      
+      // Backend ko nayi skills bhejo (ensure backend has this PUT route)
+      const { data } = await axios.put(
+        'https://entreskill-hub-9r2j.onrender.com/api/auth/profile', 
+        { skills: editedSkills }, 
+        config
+      );
+
+      // Local storage aur state update karo taaki dashboard ko pata chal jaye
+      const updatedUser = { ...user, skills: editedSkills };
+      setUser(updatedUser);
+      localStorage.setItem('userInfo', JSON.stringify(updatedUser));
+      
+      alert("✅ Skills saved successfully! AI engine is ready.");
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      alert("❌ Failed to save skills. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   if (!user) return null;
 
   const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=0F172A&color=fff&bold=true&size=128`;
@@ -66,7 +117,6 @@ function Profile() {
           1. ENTERPRISE HEADER BANNER
           ========================================== */}
       <div className="h-[240px] w-full relative overflow-hidden bg-[#0F172A]">
-        {/* Abstract Background Design */}
         <div className="absolute inset-0 opacity-20">
           <div className="absolute top-[-50px] right-[-50px] w-[300px] h-[300px] bg-blue-500 rounded-full blur-[80px]"></div>
           <div className="absolute bottom-[-100px] left-[20%] w-[400px] h-[400px] bg-indigo-500 rounded-full blur-[100px]"></div>
@@ -80,7 +130,6 @@ function Profile() {
             ========================================== */}
         <div className="w-full lg:w-[340px] shrink-0 space-y-6">
           
-          {/* Main User Card */}
           <div className="bg-white rounded-[32px] p-8 border border-slate-200 shadow-xl text-center relative">
             <div className="absolute top-4 left-4 bg-gradient-to-r from-amber-400 to-amber-500 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-md flex items-center gap-1">
               <FiStar className="fill-white" size={10} /> PRO PLAN
@@ -107,7 +156,6 @@ function Profile() {
             </div>
           </div>
 
-          {/* Navigation Menu */}
           <div className="bg-white rounded-[32px] border border-slate-200 shadow-lg p-3 space-y-1">
             {[
               { id: 'overview', icon: FiActivity, label: 'Dashboard Overview' },
@@ -153,11 +201,10 @@ function Profile() {
             ========================================== */}
         <div className="flex-1 mt-6 lg:mt-0 pb-10">
           
-          {/* TAB 1: OVERVIEW (ANALYTICS & GAMIFICATION) */}
+          {/* TAB 1: OVERVIEW */}
           {activeTab === 'overview' && (
             <div className="animate-fade-in space-y-8">
               
-              {/* Analytics Grid */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-white p-6 rounded-[32px] border border-slate-200 shadow-sm flex items-center gap-5 relative overflow-hidden group">
                   <div className="absolute right-[-20px] top-[-20px] opacity-5 group-hover:opacity-10 transition-opacity"><FiTrendingUp size={120}/></div>
@@ -193,7 +240,6 @@ function Profile() {
                 </div>
               </div>
 
-              {/* Achievements & Badges */}
               <div className="bg-white rounded-[32px] border border-slate-200 p-8 shadow-sm">
                 <div className="flex items-center justify-between mb-8">
                   <h3 className="text-[22px] font-black text-[#0F172A]">Your Achievements</h3>
@@ -221,7 +267,7 @@ function Profile() {
             </div>
           )}
 
-          {/* TAB 2: SAVED IDEAS (GRID) */}
+          {/* TAB 2: SAVED IDEAS */}
           {activeTab === 'saved' && (
             <div className="animate-fade-in">
               <div className="mb-8 flex items-center justify-between">
@@ -282,7 +328,6 @@ function Profile() {
             <div className="animate-fade-in space-y-6">
               <h3 className="text-[28px] font-black text-[#0F172A] mb-2">Upcoming Sessions</h3>
               
-              {/* Premium Session Card */}
               <div className="bg-white rounded-[32px] border border-slate-200 p-8 shadow-sm flex flex-col md:flex-row gap-8 items-start md:items-center justify-between relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-2 h-full bg-blue-500"></div>
                 
@@ -311,16 +356,16 @@ function Profile() {
                   </button>
                 </div>
               </div>
-
             </div>
           )}
 
-          {/* TAB 4: SETTINGS */}
+          {/* TAB 4: SETTINGS (WITH NEW SKILLS MANAGER) */}
           {activeTab === 'settings' && (
             <div className="animate-fade-in bg-white border border-slate-200 rounded-[40px] p-10 shadow-sm">
               <h3 className="text-[28px] font-black text-[#0F172A] mb-8">Account Settings</h3>
               
               <div className="space-y-10">
+                
                 {/* Personal Info */}
                 <div>
                   <h4 className="text-[14px] font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2"><FiUser/> Personal Details</h4>
@@ -333,6 +378,45 @@ function Profile() {
                       <label className="block text-sm font-bold text-slate-700 mb-2">Email Address</label>
                       <input type="email" defaultValue={user.email} disabled className="w-full bg-slate-100 border border-slate-200 px-5 py-4 rounded-[16px] font-bold text-slate-400 cursor-not-allowed" />
                     </div>
+                  </div>
+                </div>
+
+                {/* 🔥 NEW FEATURE: Skills Manager */}
+                <div className="pt-8 border-t border-slate-100">
+                  <h4 className="text-[14px] font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2"><FiBriefcase/> Professional Skills</h4>
+                  
+                  <div className="flex flex-col sm:flex-row gap-3 mb-6">
+                    <input 
+                      type="text" 
+                      value={skillInput}
+                      onChange={(e) => setSkillInput(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleAddSkill()}
+                      placeholder="E.g. Web Development, Marketing, AI..." 
+                      className="flex-1 bg-slate-50 border border-slate-200 px-5 py-4 rounded-[16px] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white font-bold text-[#0F172A] transition-all"
+                    />
+                    <button 
+                      onClick={handleAddSkill}
+                      className="bg-[#0F172A] text-white px-8 py-4 rounded-[16px] font-black hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <FiPlus size={20} /> Add Skill
+                    </button>
+                  </div>
+
+                  {/* Skills Tags Display */}
+                  <div className="flex flex-wrap gap-3">
+                    {editedSkills.map((skill, index) => (
+                      <span key={index} className="bg-blue-50 text-blue-700 px-4 py-2.5 rounded-[12px] text-sm font-black flex items-center gap-2 border border-blue-100 group">
+                        {skill}
+                        <FiX 
+                          size={18} 
+                          className="cursor-pointer text-blue-400 hover:text-red-500 transition-colors" 
+                          onClick={() => handleRemoveSkill(skill)} 
+                        />
+                      </span>
+                    ))}
+                    {editedSkills.length === 0 && (
+                      <p className="text-slate-400 font-medium text-sm mt-2">No skills added yet. Add some to get AI recommendations!</p>
+                    )}
                   </div>
                 </div>
 
@@ -365,10 +449,15 @@ function Profile() {
                   <button className="px-6 py-4 rounded-[16px] font-black text-slate-500 hover:bg-slate-100 transition-colors">
                     Cancel
                   </button>
-                  <button className="bg-blue-600 text-white px-8 py-4 rounded-[16px] font-black hover:bg-blue-700 transition-all active:scale-95 shadow-lg shadow-blue-200">
-                    Save Changes
+                  <button 
+                    onClick={handleSaveChanges}
+                    disabled={isSaving}
+                    className="bg-blue-600 text-white px-8 py-4 rounded-[16px] font-black hover:bg-blue-700 transition-all active:scale-95 shadow-lg shadow-blue-200 disabled:bg-blue-400 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    {isSaving ? "Saving..." : "Save Changes"}
                   </button>
                 </div>
+
               </div>
             </div>
           )}
