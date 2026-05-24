@@ -33,7 +33,8 @@ const getAIRecommendations = async (req, res) => {
             Format: [{"ideaTitle": "Exact Title Here", "matchReason": "Reasoning here"}]
             `;
 
-            const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+            // 🔥 LATEST PACKAGE KE SATH LATEST MODEL 🔥
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
             const result = await model.generateContent(prompt);
             let responseText = result.response.text();
             
@@ -57,10 +58,7 @@ const getAIRecommendations = async (req, res) => {
 
         } catch (aiError) {
             // 🔥 THE BULLETPROOF SHIELD (Plan B) 🔥
-            // Agar Google AI ne error diya, toh hamara app crash nahi hoga!
             console.error("🚨 GOOGLE AI ERROR (Ignored, using Plan B):", aiError);
-            
-            // Chup-chaap normal ideas bhej do taaki user ko "No matches found" na dikhe
             return res.status(200).json({ recommendations: allIdeas });
         }
 
