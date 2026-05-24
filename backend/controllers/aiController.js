@@ -1,79 +1,72 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const BusinessIdea = require('../models/BusinessIdea');
 
-// Initialize Gemini with your API Key from .env
+// Initialize Gemini with your API Key
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 const getAIRecommendations = async (req, res) => {
     try {
         const { skills, investmentLevel } = req.body;
 
-        // Validation check
-        if (!skills || skills.length === 0) {
-            return res.status(400).json({ message: "Please provide your skills for AI matching." });
+        // 1. Database se saare ideas nikal lo
+        const allIdeas = await BusinessIdea.find().lean();
+
+        // Agar DB khali hai, toh crash hone se bachao
+        if (!allIdeas || allIdeas.length === 0) {
+            return res.status(200).json({ recommendations: [] });
         }
 
-        // 1. Fetch all business ideas from our database to show to Gemini
-        const allIdeas = await BusinessIdea.find().select('title category requiredSkills investmentLevel');
+        // Agar user ke paas skills nahi hain, toh direct purane ideas bhej do
+        if (!skills || skills.length === 0) {
+            return res.status(200).json({ recommendations: allIdeas });
+        }
 
-        // 2. Write a strict Prompt for Gemini AI
-        const prompt = `
-        You are an expert Business Mentor for a platform called EntreSkill.
-        A user has the following profile:
-        - Skills: ${skills.join(', ')}
-        - Budget/Investment capacity: ${investmentLevel || 'Any'}
+        // 2. AI MATCHING KI KOSHISH (Plan A)
+        try {
+            const prompt = `
+            You are an expert Business Mentor. 
+            User skills: ${skills.join(', ')}. 
+            Budget: ${investmentLevel || 'Any'}.
+            Available ideas: ${JSON.stringify(allIdeas)}
+            
+            Task: Select exactly top 3 matching ideas. Return ONLY a valid JSON array.
+            Format: [{"ideaTitle": "Exact Title Here", "matchReason": "Reasoning here"}]
+            `;
 
-        Here is the list of available business ideas in our database:
-        ${JSON.stringify(allIdeas)}
+            const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+            const result = await model.generateContent(prompt);
+            let responseText = result.response.text();
+            
+            // Clean JSON string
+            responseText = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+            const aiMatches = JSON.parse(responseText);
 
-        Task: Select exactly the top 3 business ideas from this list that BEST match the user's profile.
-        Write a personalized 1-2 sentence reason for EACH selected idea explaining WHY it's a good fit for them.
+            const matchedTitles = aiMatches.map(match => match.ideaTitle);
+            const finalIdeas = allIdeas.filter(idea => matchedTitles.includes(idea.title));
 
-        CRITICAL REQUIREMENT: You MUST return the result as a valid JSON array of objects. 
-        Do NOT include any other text, markdown formatting, or code blocks like \`\`\`json. 
-        Format exactly like this:
-        [
-          {
-            "ideaTitle": "Exact Title of the idea from the list",
-            "matchReason": "Your personalized reasoning here."
-          }
-        ]
-        `;
+            const customizedIdeas = finalIdeas.map(idea => {
+                const aiData = aiMatches.find(match => match.ideaTitle === idea.title);
+                return {
+                    ...idea,
+                    aiReasoning: aiData ? aiData.matchReason : "Great match based on your profile."
+                };
+            });
 
-        // 3. Call the Gemini Model (🔥 100% STABLE 'gemini-pro' ENGINE 🔥)
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-        const result = await model.generateContent(prompt);
-        let responseText = result.response.text();
+            // Agar AI successful raha, toh AI wale ideas bhejo
+            return res.status(200).json({ recommendations: customizedIdeas });
 
-        // 4. Clean the response to ensure it's valid JSON
-        responseText = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
-        const aiMatches = JSON.parse(responseText);
-
-        // 5. Fetch the full roadmaps and details from the database using AI's selected titles
-        const matchedTitles = aiMatches.map(match => match.ideaTitle);
-        const finalIdeas = await BusinessIdea.find({ title: { $in: matchedTitles } }).lean();
-
-        // 6. Merge AI's custom reasoning with the original database ideas
-        const customizedIdeas = finalIdeas.map(idea => {
-            const aiData = aiMatches.find(match => match.ideaTitle === idea.title);
-            return {
-                ...idea,
-                aiReasoning: aiData ? aiData.matchReason : "This is a great match based on your profile."
-            };
-        });
-
-        // Send the final result back to the frontend
-        res.status(200).json({
-            message: "AI has successfully generated your personalized recommendations!",
-            recommendations: customizedIdeas
-        });
+        } catch (aiError) {
+            // 🔥 THE BULLETPROOF SHIELD (Plan B) 🔥
+            // Agar Google AI ne error diya, toh hamara app crash nahi hoga!
+            console.error("🚨 GOOGLE AI ERROR (Ignored, using Plan B):", aiError);
+            
+            // Chup-chaap normal ideas bhej do taaki user ko "No matches found" na dikhe
+            return res.status(200).json({ recommendations: allIdeas });
+        }
 
     } catch (error) {
-        console.error("AI Recommendation Error:", error);
-        res.status(500).json({ 
-            message: "AI is currently taking a coffee break. Please try again later.", 
-            error: error.message 
-        });
+        console.error("Main Server Error:", error);
+        res.status(500).json({ message: "Server error", error: error.message });
     }
 };
 
