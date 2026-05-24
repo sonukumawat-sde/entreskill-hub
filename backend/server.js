@@ -11,8 +11,11 @@ connectDB();
 
 const app = express();
 
-// Middleware setup
-app.use(cors());
+// Middleware setup - 👇 YAHAN MAINE CORS KO UPDATE KAR DIYA HAI
+app.use(cors({
+  origin: ["http://localhost:5173", "https://entreskill-hub-teal.vercel.app"],
+  credentials: true
+}));
 app.use(express.json());
 
 // Routes Links
