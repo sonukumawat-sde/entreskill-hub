@@ -1,45 +1,49 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const BusinessIdea = require('../models/BusinessIdea');
 
-// Initialize Gemini with your API Key
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 const getAIRecommendations = async (req, res) => {
     try {
         const { skills, investmentLevel } = req.body;
 
-        // 1. Database se saare ideas nikal lo
         const allIdeas = await BusinessIdea.find().lean();
 
-        // Agar DB khali hai, toh crash hone se bachao
         if (!allIdeas || allIdeas.length === 0) {
             return res.status(200).json({ recommendations: [] });
         }
 
-        // Agar user ke paas skills nahi hain, toh direct purane ideas bhej do
         if (!skills || skills.length === 0) {
-            return res.status(200).json({ recommendations: allIdeas });
+            return res.status(200).json({ recommendations: allIdeas.slice(0, 3) });
         }
 
-        // 2. AI MATCHING KI KOSHISH (Plan A)
         try {
+            // Sirf titles bhejenge taaki prompt chhota aur fast rahe
+            const ideaContext = allIdeas.map(idea => idea.title).join(", ");
+
             const prompt = `
             You are an expert Business Mentor. 
             User skills: ${skills.join(', ')}. 
             Budget: ${investmentLevel || 'Any'}.
-            Available ideas: ${JSON.stringify(allIdeas)}
+            Available ideas to choose from: ${ideaContext}.
             
-            Task: Select exactly top 3 matching ideas. Return ONLY a valid JSON array.
-            Format: [{"ideaTitle": "Exact Title Here", "matchReason": "Reasoning here"}]
+            Task: Select exactly 3 ideas from the available list that best match the user's skills.
+            Return a pure JSON array of objects.
+            Format: [{"ideaTitle": "Exact Title Here", "matchReason": "Short personalized reason why this fits their skills"}]
             `;
 
-            // 🔥 LATEST PACKAGE KE SATH LATEST MODEL 🔥
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            // 🔥 NATIVE JSON MODE (No aggressive cleaners needed anymore) 🔥
+            const model = genAI.getGenerativeModel({ 
+                model: "gemini-1.5-flash",
+                generationConfig: {
+                    responseMimeType: "application/json",
+                }
+            });
+
             const result = await model.generateContent(prompt);
-            let responseText = result.response.text();
+            const responseText = result.response.text();
             
-            // Clean JSON string
-            responseText = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+            // Because of responseMimeType, this is 100% guaranteed to be a valid JSON string
             const aiMatches = JSON.parse(responseText);
 
             const matchedTitles = aiMatches.map(match => match.ideaTitle);
@@ -49,17 +53,17 @@ const getAIRecommendations = async (req, res) => {
                 const aiData = aiMatches.find(match => match.ideaTitle === idea.title);
                 return {
                     ...idea,
-                    aiReasoning: aiData ? aiData.matchReason : "Great match based on your profile."
+                    aiReasoning: aiData ? aiData.matchReason : "Matched perfectly with your skills."
                 };
             });
 
-            // Agar AI successful raha, toh AI wale ideas bhejo
+            // 🚀 SUCCESS: Bhej do asli AI recommendations!
             return res.status(200).json({ recommendations: customizedIdeas });
 
         } catch (aiError) {
-            // 🔥 THE BULLETPROOF SHIELD (Plan B) 🔥
-            console.error("🚨 GOOGLE AI ERROR (Ignored, using Plan B):", aiError);
-            return res.status(200).json({ recommendations: allIdeas });
+            console.error("🚨 GEMINI AI CRASHED. Reason:", aiError);
+            // Fallback: Agar kisi bhi wajah se error aaye, toh sirf pehle 3 ideas dikhao taaki pata chale ki fallback chal raha hai.
+            return res.status(200).json({ recommendations: allIdeas.slice(0, 3) });
         }
 
     } catch (error) {
