@@ -2,6 +2,7 @@ const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const connectDB = require('./config/db');
+const aiRoutes = require('./routes/aiRoutes');
 
 // .env file se secret variables load karna
 dotenv.config();
@@ -24,6 +25,7 @@ const recommendationRoutes = require('./routes/recommendationRoutes');
 const bookmarkRoutes = require('./routes/bookmarkRoutes'); // 👇 NAYA CODE: Bookmark routes ko import kiya
 
 app.use('/api/auth', authRoutes);
+app.use('/api/ai', aiRoutes);
 app.use('/api/recommendations', recommendationRoutes); 
 app.use('/api/bookmarks', bookmarkRoutes); // 👇 NAYA CODE: Bookmark API ka endpoint set kar diya
 
