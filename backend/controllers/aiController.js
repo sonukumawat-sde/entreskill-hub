@@ -40,8 +40,8 @@ const getAIRecommendations = async (req, res) => {
         ]
         `;
 
-        // 3. Call the Gemini Model (🔥 LATEST 2.5 ENGINE INSTALLED 🔥)
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+        // 3. Call the Gemini Model (🔥 100% STABLE 'gemini-pro' ENGINE 🔥)
+        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
         const result = await model.generateContent(prompt);
         let responseText = result.response.text();
 
