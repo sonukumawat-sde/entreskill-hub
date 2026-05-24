@@ -40,12 +40,12 @@ const getAIRecommendations = async (req, res) => {
         ]
         `;
 
-        // 3. Call the Gemini Model (🔥 UPDATED TO LATEST 2.5 MODEL 🔥)
+        // 3. Call the Gemini Model (🔥 LATEST 2.5 ENGINE INSTALLED 🔥)
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
         const result = await model.generateContent(prompt);
         let responseText = result.response.text();
 
-        // 4. Clean the response to ensure it's valid JSON (Removing accidental markdown ticks)
+        // 4. Clean the response to ensure it's valid JSON
         responseText = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
         const aiMatches = JSON.parse(responseText);
 
