@@ -35,7 +35,7 @@ function Profile() {
       if (token) {
         try {
           const config = { headers: { Authorization: `Bearer ${token}` } };
-          const { data } = await axios.get('http://localhost:5000/api/bookmarks', config);
+          const { data } = await axios.get('https://entreskill-hub-9r2j.onrender.com/api/bookmarks', config);
           
           if (data.success) {
             setSavedIdeas(data.bookmarkedIdeas);

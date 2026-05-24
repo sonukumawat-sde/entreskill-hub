@@ -57,7 +57,7 @@ function Onboarding() {
 
       // 3. Backend par data bhejo!
       const { data } = await axios.post(
-        'http://localhost:5000/api/auth/onboarding', 
+        'https://entreskill-hub-9r2j.onrender.com/api/auth/onboarding', 
         assessment, // Yeh humari skills, budget aur time ki state hai
         config
       );

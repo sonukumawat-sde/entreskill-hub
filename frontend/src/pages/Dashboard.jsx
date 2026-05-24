@@ -44,7 +44,7 @@ function Dashboard() {
 
         // 1. Silent Profile Update 
         try {
-          const { data: profileData } = await axios.get('http://localhost:5000/api/auth/profile', config);
+          const { data: profileData } = await axios.get('https://entreskill-hub-9r2j.onrender.com/api/auth/profile', config);
           setUser(profileData);
           localStorage.setItem('userInfo', JSON.stringify(profileData));
           currentSkills = profileData.skills || [];
@@ -56,13 +56,13 @@ function Dashboard() {
         let fetchedIdeas = [];
         if (currentSkills && currentSkills.length > 0) {
           const { data } = await axios.post(
-            'http://localhost:5000/api/recommendations/match', 
+            'https://entreskill-hub-9r2j.onrender.com/api/recommendations/match', 
             { userSkills: currentSkills }, 
             config
           );
           fetchedIdeas = data.recommendations;
         } else {
-          const { data } = await axios.get('http://localhost:5000/api/recommendations/all', config);
+          const { data } = await axios.get('https://entreskill-hub-9r2j.onrender.com/api/recommendations/all', config);
           fetchedIdeas = data.ideas;
         }
 
@@ -70,7 +70,7 @@ function Dashboard() {
 
         // 3. Fetch Real Bookmarks from Database
         try {
-          const { data: bookmarkData } = await axios.get('http://localhost:5000/api/bookmarks', config);
+          const { data: bookmarkData } = await axios.get('https://entreskill-hub-9r2j.onrender.com/api/bookmarks', config);
           if (bookmarkData.success) {
             setBookmarkedIdeas(bookmarkData.bookmarkedIdeas);
           }
@@ -114,7 +114,7 @@ function Dashboard() {
       }
 
       // Background API Call
-      await axios.post('http://localhost:5000/api/bookmarks/toggle', { idea }, config);
+      await axios.post('https://entreskill-hub-9r2j.onrender.com/api/bookmarks/toggle', { idea }, config);
       
     } catch (error) {
       console.error("Error toggling bookmark API:", error);

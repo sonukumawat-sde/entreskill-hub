@@ -25,7 +25,7 @@ function Register() {
       const config = { headers: { 'Content-Type': 'application/json' } };
       
       // Backend ko request bhej rahe hain
-      const { data } = await axios.post('http://localhost:5000/api/auth/register', formData, config);
+      const { data } = await axios.post('https://entreskill-hub-9r2j.onrender.com/api/auth/register', formData, config);
       
       // NAYA CODE: Backend se aaya hua Token aur User info save kar lo
       localStorage.setItem('token', data.token);
