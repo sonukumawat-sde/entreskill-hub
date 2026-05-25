@@ -1,13 +1,11 @@
 import React from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-// NAYA: FiLogOut ko import kiya hai
 import { FiHome, FiCompass, FiUsers, FiAward, FiSearch, FiBell, FiSettings, FiHelpCircle, FiChevronRight, FiZap, FiLogOut } from 'react-icons/fi';
 
 function Layout() {
   const location = useLocation();
-  const navigate = useNavigate(); // NAYA: Redirect karne ke liye
+  const navigate = useNavigate();
 
-  // NAYA: LocalStorage se logged-in user ka data nikaal rahe hain (Dynamic Profile ke liye)
   const userInfoString = localStorage.getItem('userInfo');
   const user = userInfoString ? JSON.parse(userInfoString) : { name: 'Sonu Kumawat' };
 
@@ -18,7 +16,6 @@ function Layout() {
     { path: '/profile', name: 'Profile', icon: <FiAward size={22} /> },
   ];
 
-  // NAYA: Logout Function
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('userInfo');
@@ -67,29 +64,51 @@ function Layout() {
           
           <div className="my-4 border-t border-slate-100 mx-2"></div>
           
-          <Link to="#" className="flex items-center gap-3 px-4 py-3 rounded-2xl font-semibold text-sm text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-all">
-            <FiSettings size={20} /> Settings
-          </Link>
-          <Link to="#" className="flex items-center gap-3 px-4 py-3 rounded-2xl font-semibold text-sm text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-all">
-            <FiHelpCircle size={20} /> Help Center
+          {/* 🔥 UPGRADED SETTINGS & HELP BUTTONS 🔥 */}
+          <Link 
+            to="/settings" 
+            className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl font-bold transition-all duration-200 group active:scale-95 ${
+              location.pathname === '/settings' 
+              ? 'bg-violet-600 text-white shadow-md shadow-violet-200/50' 
+              : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'
+            }`}
+          >
+            <div className={`${location.pathname === '/settings' ? 'scale-110' : 'group-hover:scale-110'} transition-transform`}>
+               <FiSettings size={20} />
+            </div>
+            <span className="text-[14px]">Account Settings</span>
           </Link>
 
-          {/* 👇 NAYA: DESKTOP LOGOUT BUTTON 👇 */}
+          <Link 
+            to="/help" 
+            className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl font-bold transition-all duration-200 group active:scale-95 ${
+              location.pathname === '/help' 
+              ? 'bg-violet-600 text-white shadow-md shadow-violet-200/50' 
+              : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'
+            }`}
+          >
+            <div className={`${location.pathname === '/help' ? 'scale-110' : 'group-hover:scale-110'} transition-transform`}>
+               <FiHelpCircle size={20} />
+            </div>
+            <span className="text-[14px]">Help & Support</span>
+          </Link>
+
+          {/* LOGOUT BUTTON */}
           <button 
             onClick={handleLogout}
-            className="flex w-full items-center gap-3 px-4 py-3 rounded-2xl font-bold text-sm text-red-500 hover:bg-red-50 hover:text-red-700 transition-all active:scale-95"
+            className="flex w-full items-center gap-3 mt-2 px-4 py-3.5 rounded-2xl font-bold text-[14px] text-red-500 hover:bg-red-50 hover:text-red-700 transition-all active:scale-95 group"
           >
-            <FiLogOut size={20} /> Logout
+            <div className="group-hover:scale-110 transition-transform">
+               <FiLogOut size={20} />
+            </div>
+            Logout
           </button>
-
         </div>
 
         <div className="p-4 bg-slate-50 border-t border-slate-200 m-2 rounded-2xl mb-4 group cursor-pointer hover:border-violet-200 transition-colors">
           <Link to="/profile" className="flex items-center gap-3">
-            {/* NAYA: Dynamic Avatar generation based on User Name */}
             <img src={`https://ui-avatars.com/api/?name=${user.name.replace(' ', '+')}&background=ede9fe&color=6d28d9&bold=true`} alt="User" className="w-10 h-10 rounded-full border-2 border-white shadow-sm" />
             <div className="flex-1 min-w-0">
-              {/* NAYA: Dynamic Name Injection */}
               <p className="text-sm font-extrabold text-slate-900 truncate group-hover:text-violet-700 transition-colors">{user.name}</p>
               <p className="text-xs font-bold text-violet-600 truncate">Top 1% Developer</p>
             </div>
@@ -128,7 +147,6 @@ function Layout() {
               <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
             </button>
             
-            {/* NAYA: Mobile Profile & Logout Button Area */}
             <div className="md:hidden flex items-center gap-3">
                 <img src={`https://ui-avatars.com/api/?name=${user.name.replace(' ', '+')}&background=ede9fe&color=6d28d9&bold=true`} alt="Profile" className="w-10 h-10 rounded-full border-2 border-slate-200" />
                 <button onClick={handleLogout} className="p-2.5 bg-red-50 text-red-600 rounded-full active:scale-95">

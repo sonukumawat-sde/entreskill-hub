@@ -10,8 +10,12 @@ import Onboarding from './pages/Onboarding';
 import Roadmap from './pages/Roadmap'; 
 import Mentors from './pages/Mentors';
 import Profile from './pages/Profile'; 
-import LearningModule from './pages/LearningModule'; // Naya Learning Module import kiya
+import LearningModule from './pages/LearningModule'; 
 import NotFound from './pages/NotFound';
+
+// 🔥 NAYA: Naye premium pages ko import kiya hai
+import Settings from './pages/Settings';
+import HelpCenter from './pages/HelpCenter';
 
 // Components
 import Layout from './components/Layout';
@@ -28,7 +32,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/onboarding" element={<Onboarding />} />
         
-        {/* Naya Learning route yahan add kiya hai taaki distraction-free rahe */}
+        {/* Learning route yahan add kiya hai taaki distraction-free rahe */}
         <Route path="/learning" element={<LearningModule />} />
         
         {/* ==========================================
@@ -37,13 +41,15 @@ function App() {
         <Route element={<Layout />}>
           <Route path="/dashboard" element={<Dashboard />} />
           
-          {/* 👇 NAYA: Roadmap ko ab ID chahiye taaki wo specific idea dikha sake 👇 */}
           <Route path="/roadmap/:id" element={<Roadmap />} />
-          {/* Purana wala route bhi rakha hai taaki Sidebar ka link directly crash na ho */}
           <Route path="/roadmap" element={<Roadmap />} />
           
           <Route path="/mentors" element={<Mentors />} />
           <Route path="/profile" element={<Profile />} />
+
+          {/* 👇 NAYA: Settings aur Help Center ke routes add kiye hain 👇 */}
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/help" element={<HelpCenter />} />
         </Route>
         
         {/* Catch-all route for 404 Page Not Found */}
