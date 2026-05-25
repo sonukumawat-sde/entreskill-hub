@@ -25,19 +25,19 @@ function HelpCenter() {
   ]);
   const chatEndRef = useRef(null);
 
-  const userInfoString = localStorage.getItem('userInfo');
-  const user = userInfoString ? JSON.parse(userInfoString) : null;
-
   // Auto-scroll chat to bottom
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages, isBotTyping]);
 
+  // 🔥 BUG FIX: Removed infinite loop. Now it only sets user data ONCE when page loads 🔥
   useEffect(() => {
-    if (user) {
+    const userInfoString = localStorage.getItem('userInfo');
+    if (userInfoString) {
+      const user = JSON.parse(userInfoString);
       setFormData({ name: user.name || '', email: user.email || '', message: '' });
     }
-  }, [user]);
+  }, []); 
 
   const allFaqs = [
     { q: "How does the Smart AI Matching work?", a: "Our algorithm analyzes your skills against our database to find relevant business roadmaps instantly." },
@@ -50,7 +50,6 @@ function HelpCenter() {
     faq.a.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // 🔥 1. EMAIL SUPPORT LOGIC 🔥
   const handleContactSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -69,7 +68,6 @@ function HelpCenter() {
     }
   };
 
-  // 🔥 2. REAL AI CHATBOT LOGIC (Gemini) 🔥
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!chatInput.trim()) return;
@@ -87,7 +85,7 @@ function HelpCenter() {
       setChatMessages(prev => [...prev, { sender: 'bot', text: response.data.reply }]);
     } catch (error) {
       console.error("Chat API Error:", error);
-      setChatMessages(prev => [...prev, { sender: 'bot', text: 'Sorry, my server is sleeping. Please try again later.' }]);
+      setChatMessages(prev => [...prev, { sender: 'bot', text: 'Error: API connection failed. Please check Render Logs or GEMINI_API_KEY.' }]);
     } finally {
       setIsBotTyping(false);
     }
@@ -100,7 +98,6 @@ function HelpCenter() {
   return (
     <div className="max-w-6xl mx-auto p-4 md:p-8 animate-fade-in pb-20 relative">
       
-      {/* EMAIL CONTACT MODAL */}
       {showContactModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fade-in">
           <div className="bg-white rounded-[32px] w-full max-w-lg shadow-2xl overflow-hidden relative">
@@ -125,7 +122,6 @@ function HelpCenter() {
                   <FiAlertCircle className="text-red-600 mt-0.5" size={20} />
                   <div>
                     <h4 className="text-red-800 font-bold">Submission Failed</h4>
-                    <p className="text-red-600 text-sm mt-1">Our servers are busy. Check API keys.</p>
                   </div>
                 </div>
               )}
@@ -152,7 +148,6 @@ function HelpCenter() {
         </div>
       )}
 
-      {/* AI LIVE CHAT WINDOW */}
       {showChatWindow && (
         <div className="fixed bottom-6 right-6 w-[360px] bg-white rounded-[32px] shadow-2xl border border-slate-200 z-[90] overflow-hidden flex flex-col h-[520px] animate-fade-in">
           <div className="bg-slate-900 p-5 flex items-center justify-between">
@@ -211,7 +206,6 @@ function HelpCenter() {
         </div>
       )}
 
-      {/* FLOATING CHAT BUTTON */}
       {!showChatWindow && (
         <button 
           onClick={() => setShowChatWindow(true)}
@@ -221,7 +215,6 @@ function HelpCenter() {
         </button>
       )}
 
-      {/* MAIN UI */}
       <div className="bg-gradient-to-br from-violet-600 to-indigo-600 rounded-[32px] p-10 md:p-16 text-center shadow-lg shadow-violet-200 mb-10">
         <h1 className="text-3xl md:text-5xl font-extrabold text-white tracking-tight mb-4">Hi, how can we help?</h1>
         <p className="text-violet-200 font-semibold mb-8 text-lg">Search our knowledge base or ask the AI.</p>
@@ -241,7 +234,6 @@ function HelpCenter() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
         <div className="lg:col-span-1 space-y-8">
           <div className="border-t border-slate-200 pt-8">
             <div onClick={() => setShowChatWindow(true)} className="bg-white border border-slate-200 p-8 rounded-[24px] hover:border-violet-300 transition-colors cursor-pointer group shadow-sm mb-6">
@@ -293,7 +285,6 @@ function HelpCenter() {
             ))}
           </div>
         </div>
-
       </div>
     </div>
   );
