@@ -56,7 +56,15 @@ function HelpCenter() {
     setSubmitStatus(null);
 
     try {
-      await axios.post('https://entreskill-hub-9r2j.onrender.com/api/support/contact', formData);
+     try {
+      // 🔥 NAYA CODE: Ab hum 'message' ke sath 'chatMessages' (history) bhi bhej rahe hain
+      const response = await axios.post('https://entreskill-hub-9r2j.onrender.com/api/chatbot/ask', {
+        message: userText,
+        history: chatMessages 
+      });
+      
+      setChatMessages(prev => [...prev, { sender: 'bot', text: response.data.reply }]);
+    } catch (error) {s
       setSubmitStatus('success');
       setFormData({ ...formData, message: '' });
       setTimeout(() => setShowContactModal(false), 3000);
