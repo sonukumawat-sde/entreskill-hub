@@ -12,7 +12,7 @@ connectDB();
 
 const app = express();
 
-// Middleware setup - 👇 YAHAN MAINE CORS KO UPDATE KAR DIYA HAI
+// Middleware setup
 app.use(cors({
   origin: ["http://localhost:5173", "https://entreskill-hub-teal.vercel.app"],
   credentials: true
@@ -22,14 +22,20 @@ app.use(express.json());
 // Routes Links
 const authRoutes = require('./routes/authRoutes');
 const recommendationRoutes = require('./routes/recommendationRoutes'); 
-const bookmarkRoutes = require('./routes/bookmarkRoutes'); 
-const supportRoutes = require('./routes/supportRoutes'); // 🔥 NAYA CODE: Support routes ko import kiya
+const bookmarkRoutes = require('./routes/bookmarksRoutes'); // Tumhara purana route
+const supportRoutes = require('./routes/supportRoutes'); 
+
+// 🔥 NAYA CODE: Apna naya AI ChatBot route import kiya 🔥
+const chatBotRoutes = require('./routes/chatBotRoutes'); 
 
 app.use('/api/auth', authRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/recommendations', recommendationRoutes); 
 app.use('/api/bookmarks', bookmarkRoutes); 
-app.use('/api/support', supportRoutes); // 🔥 NAYA CODE: Support API ka endpoint set kar diya
+app.use('/api/support', supportRoutes); 
+
+// 🔥 NAYA CODE: AI Chatbot ka endpoint set kar diya 🔥
+app.use('/api/chatbot', chatBotRoutes); 
 
 // Basic test route
 app.get('/', (req, res) => {
