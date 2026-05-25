@@ -8,20 +8,21 @@ const sendSupportEmail = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Please fill all fields' });
         }
 
-        // 1. Email bhejne wala 'Transporter' setup karo
+        // 🔥 NAYA: Bulletproof SMTP Configuration 🔥
         const transporter = nodemailer.createTransport({
-            service: 'gmail',
+            host: 'smtp.gmail.com',
+            port: 465,
+            secure: true, // true for 465, false for other ports
             auth: {
-                user: process.env.EMAIL_USER, // Tumhara Gmail
-                pass: process.env.EMAIL_PASS  // Tumhara Gmail ka 'App Password'
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS
             }
         });
 
-        // 2. Email ka format design karo
         const mailOptions = {
             from: process.env.EMAIL_USER,
-            to: process.env.EMAIL_USER, // Yeh email tumhare (Admin) paas aayegi
-            replyTo: email, // Jab tum apne Gmail se 'Reply' dabaoge, toh seedha us user ko reply jayega
+            to: process.env.EMAIL_USER, 
+            replyTo: email,
             subject: `🚨 New Support Ticket from ${name} | EntreSkill`,
             html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px;">
@@ -37,13 +38,12 @@ const sendSupportEmail = async (req, res) => {
             `
         };
 
-        // 3. Email send karo
         await transporter.sendMail(mailOptions);
-        
         res.status(200).json({ success: true, message: 'Support ticket sent successfully!' });
 
     } catch (error) {
         console.error('Email Sending Error:', error);
+        // Agar error aaye toh frontend ko bata de, atka ke na rakhe
         res.status(500).json({ success: false, message: 'Server failed to send email.' });
     }
 };
