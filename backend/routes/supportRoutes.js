@@ -1,8 +1,10 @@
 const express = require('express');
 const router = express.Router();
+
+// Import the controller
 const { sendSupportEmail } = require('../controllers/supportController');
 
-// Jab frontend /api/support/contact par POST request bhejega, toh email jayegi
+// Define the route
 router.post('/contact', sendSupportEmail);
 
 module.exports = router;
