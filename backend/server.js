@@ -22,12 +22,14 @@ app.use(express.json());
 // Routes Links
 const authRoutes = require('./routes/authRoutes');
 const recommendationRoutes = require('./routes/recommendationRoutes'); 
-const bookmarkRoutes = require('./routes/bookmarkRoutes'); // 👇 NAYA CODE: Bookmark routes ko import kiya
+const bookmarkRoutes = require('./routes/bookmarkRoutes'); 
+const supportRoutes = require('./routes/supportRoutes'); // 🔥 NAYA CODE: Support routes ko import kiya
 
 app.use('/api/auth', authRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/recommendations', recommendationRoutes); 
-app.use('/api/bookmarks', bookmarkRoutes); // 👇 NAYA CODE: Bookmark API ka endpoint set kar diya
+app.use('/api/bookmarks', bookmarkRoutes); 
+app.use('/api/support', supportRoutes); // 🔥 NAYA CODE: Support API ka endpoint set kar diya
 
 // Basic test route
 app.get('/', (req, res) => {
