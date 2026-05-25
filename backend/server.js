@@ -22,10 +22,8 @@ app.use(express.json());
 // Routes Links
 const authRoutes = require('./routes/authRoutes');
 const recommendationRoutes = require('./routes/recommendationRoutes'); 
-const bookmarkRoutes = require('./routes/bookmarksRoutes'); // Tumhara purana route
+const bookmarkRoutes = require('./routes/bookmarkRoutes'); // 🔥 TYPO FIXED HERE (No extra 's')
 const supportRoutes = require('./routes/supportRoutes'); 
-
-// 🔥 NAYA CODE: Apna naya AI ChatBot route import kiya 🔥
 const chatBotRoutes = require('./routes/chatBotRoutes'); 
 
 app.use('/api/auth', authRoutes);
@@ -33,8 +31,6 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/recommendations', recommendationRoutes); 
 app.use('/api/bookmarks', bookmarkRoutes); 
 app.use('/api/support', supportRoutes); 
-
-// 🔥 NAYA CODE: AI Chatbot ka endpoint set kar diya 🔥
 app.use('/api/chatbot', chatBotRoutes); 
 
 // Basic test route
