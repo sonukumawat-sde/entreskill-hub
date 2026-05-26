@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { 
   FiSearch, FiFilter, FiStar, FiCalendar, 
   FiClock, FiCheckCircle, FiUser, FiArrowRight,
@@ -21,6 +22,8 @@ const loadScript = (src) => {
 };
 
 function Mentors() {
+  const [mentors, setMentors] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
   
@@ -30,61 +33,38 @@ function Mentors() {
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedSlot, setSelectedSlot] = useState("");
 
-  // Premium Detailed Mentor Database
-  const mentors = [
-    {
-      id: 1,
-      name: "Aarti Sharma",
-      role: "Founder, StyleEdge Boutique",
-      category: "Business",
-      experience: "8+ Years",
-      rating: 4.9,
-      reviews: 124,
-      expertise: ["Retail Strategy", "Pricing", "Inventory Management"],
-      price: 299,
-      avatar: "https://ui-avatars.com/api/?name=Aarti+Sharma&background=DBEAFE&color=2563EB&bold=true",
-      isTopRated: true
-    },
-    {
-      id: 2,
-      name: "Vikram Mehta",
-      role: "CTO at TechFlow SaaS",
-      category: "Tech",
-      experience: "12+ Years",
-      rating: 4.8,
-      reviews: 89,
-      expertise: ["Scalable Architecture", "Node.js", "AI Integration"],
-      price: 499,
-      avatar: "https://ui-avatars.com/api/?name=Vikram+Mehta&background=F5F3FF&color=7C3AED&bold=true",
-      isTopRated: true
-    },
-    {
-      id: 3,
-      name: "Sarah Jenkins",
-      role: "Ex-Google Growth Lead",
-      category: "Marketing",
-      experience: "10+ Years",
-      rating: 5.0,
-      reviews: 210,
-      expertise: ["Paid Acquisition", "SEO", "Brand Positioning"],
-      price: 599,
-      avatar: "https://ui-avatars.com/api/?name=Sarah+Jenkins&background=ECFDF5&color=10B981&bold=true",
-      isTopRated: false
-    },
-    {
-      id: 4,
-      name: "Rajesh Khanna",
-      role: "Legal Consultant for Startups",
-      category: "Legal",
-      experience: "15+ Years",
-      rating: 4.7,
-      reviews: 56,
-      expertise: ["Company Registration", "Equity", "IP Rights"],
-      price: 399,
-      avatar: "https://ui-avatars.com/api/?name=Rajesh+Khanna&background=FFF7ED&color=F97316&bold=true",
-      isTopRated: false
-    }
-  ];
+  // 🔥 BACKEND INTEGRATION: Fetching Mentors from MongoDB
+  useEffect(() => {
+    const fetchMentors = async () => {
+      try {
+        const res = await axios.get('https://entreskill-hub-9r2j.onrender.com/api/mentors');
+        
+        // Data mapping to match your beautiful UI structure
+        const mappedMentors = res.data.mentors.map(m => ({
+          id: m._id,
+          name: m.name,
+          role: "Expert Mentor", // Default role since schema doesn't have it yet
+          category: m.expertise.length > 0 ? m.expertise[0] : "Business",
+          experience: `${m.experienceYears}+ Years`,
+          rating: 4.8, // Default rating
+          reviews: Math.floor(Math.random() * 100) + 50, // Default random reviews
+          expertise: m.expertise,
+          price: 499, // Default price
+          avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(m.name)}&background=random&color=fff&bold=true`,
+          isTopRated: m.experienceYears > 5, // Logic for Top Rated badge
+          bio: m.bio
+        }));
+
+        setMentors(mappedMentors);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching mentors:", error);
+        setLoading(false);
+      }
+    };
+
+    fetchMentors();
+  }, []);
 
   const categories = ["All", "Tech", "Marketing", "Business", "Legal"];
   const timeSlots = ["10:00 AM", "02:00 PM", "04:30 PM", "07:00 PM"];
@@ -92,8 +72,8 @@ function Mentors() {
   // Filter Logic
   const filteredMentors = mentors.filter(mentor => {
     const matchesSearch = mentor.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         mentor.role.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = activeCategory === "All" || mentor.category === activeCategory;
+                          mentor.role.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = activeCategory === "All" || mentor.category === activeCategory || mentor.expertise.includes(activeCategory);
     return matchesSearch && matchesCategory;
   });
 
@@ -203,7 +183,12 @@ function Mentors() {
         {/* ==========================================
             3. HIGHLY DETAILED MENTORS GRID
             ========================================== */}
-        {filteredMentors.length > 0 ? (
+        {loading ? (
+          <div className="flex flex-col justify-center items-center h-64 gap-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-blue-600"></div>
+            <p className="text-slate-500 font-bold">Loading expert mentors...</p>
+          </div>
+        ) : filteredMentors.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
             {filteredMentors.map((mentor) => (
               <div 
@@ -239,12 +224,19 @@ function Mentors() {
                     </p>
                   </div>
 
+                  <p className="text-sm text-slate-600 mb-6 line-clamp-2">{mentor.bio}</p>
+
                   <div className="flex flex-wrap gap-2 mb-8">
-                    {mentor.expertise.map((skill, idx) => (
+                    {mentor.expertise.slice(0, 3).map((skill, idx) => (
                       <span key={idx} className="bg-slate-50 text-slate-600 px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-100">
                         {skill}
                       </span>
                     ))}
+                    {mentor.expertise.length > 3 && (
+                       <span className="bg-slate-50 text-slate-600 px-2 py-1.5 rounded-lg text-xs font-bold border border-slate-100">
+                       +{mentor.expertise.length - 3}
+                     </span>
+                    )}
                   </div>
                 </div>
 
@@ -275,7 +267,7 @@ function Mentors() {
               <FiUser size={40} />
             </div>
             <h2 className="text-[24px] font-black text-slate-800 mb-2">No Mentors Found</h2>
-            <p className="text-slate-500 font-medium">Try adjusting your search or filters to find more experts.</p>
+            <p className="text-slate-500 font-medium">We are currently verifying our mentor applications. Please check back soon!</p>
           </div>
         )}
 

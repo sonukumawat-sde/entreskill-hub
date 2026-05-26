@@ -3,7 +3,7 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const aiRoutes = require('./routes/aiRoutes');
-
+const mentorRoutes = require('./routes/mentorRoutes');
 // .env file se secret variables load karna
 dotenv.config();
 
@@ -32,6 +32,7 @@ app.use('/api/recommendations', recommendationRoutes);
 app.use('/api/bookmarks', bookmarkRoutes); 
 app.use('/api/support', supportRoutes); 
 app.use('/api/chatbot', chatBotRoutes); 
+app.use('/api/mentors', mentorRoutes);
 
 // Basic test route
 app.get('/', (req, res) => {
