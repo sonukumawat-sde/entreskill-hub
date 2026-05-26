@@ -11,17 +11,16 @@ const handleAIChat = async (req, res) => {
         }
 
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        // Naya, sabse fast model
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        
+        // 🔥 THE ULTIMATE FIX: Changed to universal 'gemini-pro' model. 
+        // Yeh kabhi 404 Not Found nahi dega.
+        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
-        // 🔥 BULLETPROOF MEMORY LOGIC 🔥
-        // Hum strict startChat() use karne ki jagah AI ko puri chat history ek text ki tarah padhne ko denge.
-        // Isse Gemini kabhi crash nahi hoga, chahe order kuch bhi ho.
+        // Bulletproof Memory Logic
         let fullConversation = systemPrompt + "\n\n--- Conversation History ---\n";
 
         if (history && Array.isArray(history)) {
             history.forEach(msg => {
-                // Default message ko ignore karo
                 if (msg.text === 'Hi! I am the EntreSkill AI Assistant. Ask me any coding doubt or platform question!') {
                     return;
                 }
@@ -30,10 +29,8 @@ const handleAIChat = async (req, res) => {
             });
         }
 
-        // Current message add karo
         fullConversation += `User: ${message}\nEntreSkill AI:`;
 
-        // Direct AI ko pura context de kar generate karwao
         const result = await model.generateContent(fullConversation);
         const aiResponse = result.response.text();
 
