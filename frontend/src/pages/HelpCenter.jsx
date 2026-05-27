@@ -48,15 +48,15 @@ function HelpCenter() {
     faq.a.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // 🔥 100% REAL BACKEND CONNECTION 🔥
+  // 🔥 100% REAL BACKEND CONNECTION (Fixed Route: /api/support/contact) 🔥
   const handleContactSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     setSubmitStatus(null);
 
     try {
-      // Hitting the real backend endpoint
-      await axios.post('https://entreskill-hub-9r2j.onrender.com/api/support/ticket', formData);
+      // Hitting the real, working backend endpoint exactly as defined in your routes
+      await axios.post('https://entreskill-hub-9r2j.onrender.com/api/support/contact', formData);
       
       setSubmitStatus('success');
       setFormData({ ...formData, message: '' });
