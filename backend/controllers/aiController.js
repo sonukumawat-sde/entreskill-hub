@@ -1,6 +1,6 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const BusinessIdea = require('../models/BusinessIdea');
-const Roadmap = require('../models/Roadmap'); // 🔥 DB Model Import kiya
+const Roadmap = require('../models/Roadmap'); 
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
@@ -13,27 +13,22 @@ const getAIRecommendations = async (req, res) => {
             return res.status(200).json({ recommendations: [] });
         }
 
-        // 🔥 THE SMART JAVASCRIPT MATCHING ALGORITHM (No Google dependency) 🔥
+        // 🔥 THE SMART JAVASCRIPT MATCHING ALGORITHM 🔥
         const smartFallbackMatch = () => {
             if (!skills || skills.length === 0) return allIdeas.slice(0, 3);
 
-            // User ki skills ko lowercase mein convert karo
             const userSkillsLower = skills.map(s => s.toLowerCase().trim());
 
-            // Database ke ideas ko filter karo
             let matchedIdeas = allIdeas.filter(idea => {
                 if (!idea.requiredSkills) return false;
                 const ideaSkillsLower = idea.requiredSkills.map(s => s.toLowerCase().trim());
-                // Check karo agar idea ki skill aur user ki skill match hoti hai
                 return ideaSkillsLower.some(skill => userSkillsLower.includes(skill));
             });
 
-            // Agar exact match na mile, toh default ideas dedo
             if (matchedIdeas.length === 0) {
                 matchedIdeas = allIdeas;
             }
 
-            // Top 3 matched ideas return karo with custom reason
             return matchedIdeas.slice(0, 3).map(idea => ({
                 ...idea,
                 aiReasoning: "Matched instantly by our internal Smart Algorithm based on your skills."
@@ -54,12 +49,11 @@ const getAIRecommendations = async (req, res) => {
             Return ONLY a valid JSON array like: [{"ideaTitle": "Exact Title", "matchReason": "Short reason"}]
             `;
 
-            // Using stable pro model
-            const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+            // 🔥 FIXED: Updated to latest Google model
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
             const result = await model.generateContent(prompt);
             let responseText = result.response.text();
 
-            // Clean JSON
             responseText = responseText.replace(/```json/gi, '').replace(/```/g, '').trim();
             const startIndex = responseText.indexOf('[');
             const endIndex = responseText.lastIndexOf(']');
@@ -85,7 +79,6 @@ const getAIRecommendations = async (req, res) => {
 
         } catch (aiError) {
             console.log("🚨 Google AI Failed. Activating Smart JS Algorithm...");
-            // 🚀 PLAN B: AGAR GOOGLE FAIL HUA, TOH HAMARA SMART FILTER CHALEGA
             return res.status(200).json({ recommendations: smartFallbackMatch() });
         }
 
@@ -98,7 +91,7 @@ const getAIRecommendations = async (req, res) => {
 // 🔥 NEW: 5-STEP DETAILED ROADMAP GENERATOR 🔥
 const generateRoadmap = async (req, res) => {
     try {
-        const { goal, userId } = req.body; // Frontend se Goal aur UserId aayega
+        const { goal, userId } = req.body; 
 
         if (!goal || !userId) {
             return res.status(400).json({ success: false, message: "Goal and User ID are required to generate a roadmap." });
@@ -124,11 +117,11 @@ const generateRoadmap = async (req, res) => {
         Ensure there are exactly 5 steps in the array.
         `;
 
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+        // 🔥 FIXED: Updated to latest Google model
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
         const result = await model.generateContent(prompt);
         let responseText = result.response.text();
 
-        // Clean up any potential markdown from Gemini's response
         responseText = responseText.replace(/```json/gi, '').replace(/```/g, '').trim();
         const startIndex = responseText.indexOf('{');
         const endIndex = responseText.lastIndexOf('}');
@@ -139,7 +132,6 @@ const generateRoadmap = async (req, res) => {
 
         const roadmapData = JSON.parse(responseText);
 
-        // 🔥 Save to MongoDB 
         const newRoadmap = new Roadmap({
             userId: userId,
             goal: goal,
@@ -151,7 +143,7 @@ const generateRoadmap = async (req, res) => {
         
         return res.status(200).json({
             success: true,
-            roadmap: savedRoadmap // Return saved database instance
+            roadmap: savedRoadmap 
         });
 
     } catch (error) {
