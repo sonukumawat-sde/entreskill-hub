@@ -13,22 +13,15 @@ const getAIRecommendations = async (req, res) => {
             return res.status(200).json({ recommendations: [] });
         }
 
-        // 🔥 THE SMART JAVASCRIPT MATCHING ALGORITHM 🔥
         const smartFallbackMatch = () => {
             if (!skills || skills.length === 0) return allIdeas.slice(0, 3);
-
             const userSkillsLower = skills.map(s => s.toLowerCase().trim());
-
             let matchedIdeas = allIdeas.filter(idea => {
                 if (!idea.requiredSkills) return false;
                 const ideaSkillsLower = idea.requiredSkills.map(s => s.toLowerCase().trim());
                 return ideaSkillsLower.some(skill => userSkillsLower.includes(skill));
             });
-
-            if (matchedIdeas.length === 0) {
-                matchedIdeas = allIdeas;
-            }
-
+            if (matchedIdeas.length === 0) matchedIdeas = allIdeas;
             return matchedIdeas.slice(0, 3).map(idea => ({
                 ...idea,
                 aiReasoning: "Matched instantly by our internal Smart Algorithm based on your skills."
@@ -39,17 +32,10 @@ const getAIRecommendations = async (req, res) => {
             return res.status(200).json({ recommendations: smartFallbackMatch() });
         }
 
-        // 🚀 PLAN A: TRY GOOGLE AI
         try {
             const ideaContext = allIdeas.map(idea => idea.title).join(", ");
-            const prompt = `
-            User skills: ${skills.join(', ')}. Budget: ${investmentLevel || 'Any'}.
-            Available ideas: ${ideaContext}.
-            Select exactly 3 ideas from the list that match the skills.
-            Return ONLY a valid JSON array like: [{"ideaTitle": "Exact Title", "matchReason": "Short reason"}]
-            `;
+            const prompt = `User skills: ${skills.join(', ')}. Budget: ${investmentLevel || 'Any'}. Available ideas: ${ideaContext}. Select exactly 3 ideas from the list that match the skills. Return ONLY a valid JSON array like: [{"ideaTitle": "Exact Title", "matchReason": "Short reason"}]`;
 
-            // 🔥 FIXED: Updated to latest Google model
             const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
             const result = await model.generateContent(prompt);
             let responseText = result.response.text();
@@ -57,9 +43,7 @@ const getAIRecommendations = async (req, res) => {
             responseText = responseText.replace(/```json/gi, '').replace(/```/g, '').trim();
             const startIndex = responseText.indexOf('[');
             const endIndex = responseText.lastIndexOf(']');
-            if (startIndex !== -1 && endIndex !== -1) {
-                responseText = responseText.substring(startIndex, endIndex + 1);
-            }
+            if (startIndex !== -1 && endIndex !== -1) responseText = responseText.substring(startIndex, endIndex + 1);
 
             const aiMatches = JSON.parse(responseText);
             const matchedTitles = aiMatches.map(match => match.ideaTitle);
@@ -69,16 +53,12 @@ const getAIRecommendations = async (req, res) => {
 
             const customizedIdeas = finalIdeas.map(idea => {
                 const aiData = aiMatches.find(match => match.ideaTitle === idea.title);
-                return {
-                    ...idea,
-                    aiReasoning: aiData ? aiData.matchReason : "Matched by AI based on your profile."
-                };
+                return { ...idea, aiReasoning: aiData ? aiData.matchReason : "Matched by AI based on your profile." };
             });
-
             return res.status(200).json({ recommendations: customizedIdeas });
 
         } catch (aiError) {
-            console.log("🚨 Google AI Failed. Activating Smart JS Algorithm...");
+            console.log("🚨 Google AI Failed for Recommendations. Activating Smart JS Algorithm...");
             return res.status(200).json({ recommendations: smartFallbackMatch() });
         }
 
@@ -88,50 +68,50 @@ const getAIRecommendations = async (req, res) => {
     }
 };
 
-// 🔥 NEW: 5-STEP DETAILED ROADMAP GENERATOR 🔥
+// 🔥 UNBREAKABLE ROADMAP GENERATOR 🔥
 const generateRoadmap = async (req, res) => {
     try {
         const { goal, userId } = req.body; 
 
         if (!goal || !userId) {
-            return res.status(400).json({ success: false, message: "Goal and User ID are required to generate a roadmap." });
+            return res.status(400).json({ success: false, message: "Goal and User ID are required." });
         }
 
-        const prompt = `
-        Act as an expert career and business mentor. The user wants to achieve this goal: "${goal}".
-        Create a highly detailed, realistic, and strictly 5-step roadmap to achieve this goal.
-        
-        Return ONLY a valid JSON object with the following exact structure, with no markdown formatting or backticks:
-        {
-            "title": "Roadmap to ${goal}",
-            "steps": [
-                {
-                    "stepNumber": 1,
-                    "title": "Clear Step Title",
-                    "description": "Detailed and actionable description of what to do in this step.",
-                    "estimatedTime": "e.g., 2 weeks or 1 month",
-                    "resources": ["Resource 1 name", "Resource 2 name"]
-                }
-            ]
+        let roadmapData;
+
+        try {
+            // Plan A: Try asking Google Gemini
+            const prompt = `Act as an expert career and business mentor. The user wants to achieve this goal: "${goal}". Create a highly detailed, realistic, and strictly 5-step roadmap to achieve this goal. Return ONLY a valid JSON object with the following exact structure, with no markdown formatting or backticks:
+            { "title": "Roadmap to ${goal}", "steps": [ { "stepNumber": 1, "title": "Clear Step Title", "description": "Detailed description.", "estimatedTime": "2 weeks", "resources": ["Resource 1"] } ] } Ensure there are exactly 5 steps in the array.`;
+
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const result = await model.generateContent(prompt);
+            let responseText = result.response.text();
+
+            responseText = responseText.replace(/```json/gi, '').replace(/```/g, '').trim();
+            const startIndex = responseText.indexOf('{');
+            const endIndex = responseText.lastIndexOf('}');
+            if (startIndex !== -1 && endIndex !== -1) responseText = responseText.substring(startIndex, endIndex + 1);
+
+            roadmapData = JSON.parse(responseText);
+
+        } catch (geminiError) {
+            console.error("🚨 Gemini API Failed for Roadmap. Generating Unbreakable Fallback Roadmap...", geminiError.message);
+            
+            // Plan B: UNBREAKABLE FALLBACK (Agar Gemini fail hua, toh UI kabhi crash nahi hoga)
+            roadmapData = {
+                title: `Roadmap to ${goal}`,
+                steps: [
+                    { stepNumber: 1, title: "Research & Foundation", description: `Start by deeply researching about ${goal}. Understand the market, basic concepts, and necessary tools required to start.`, estimatedTime: "1-2 Weeks", resources: ["YouTube Crash Courses", "Industry Blogs"] },
+                    { stepNumber: 2, title: "Skill Development & Practice", description: "Gain hands-on experience. Build small real-world projects or practice the core skills continuously.", estimatedTime: "3-4 Weeks", resources: ["Online Tutorials", "Practice Platforms"] },
+                    { stepNumber: 3, title: "Build Your Core Asset", description: `Create your main project, portfolio, or MVP (Minimum Viable Product) related to ${goal}.`, estimatedTime: "1 Month", resources: ["Essential Software Tools", "Community Forums"] },
+                    { stepNumber: 4, title: "Testing & Feedback", description: "Show your work to mentors or a small audience. Gather harsh feedback and improve your weak points.", estimatedTime: "2 Weeks", resources: ["EntreSkill Mentors", "Peer Review"] },
+                    { stepNumber: 5, title: "Launch & Scale", description: "Launch officially! Market your skills or product, stay consistent, and keep updating based on trends.", estimatedTime: "Ongoing", resources: ["Social Media Marketing", "Networking Groups"] }
+                ]
+            };
         }
-        Ensure there are exactly 5 steps in the array.
-        `;
 
-        // 🔥 FIXED: Updated to latest Google model
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-        const result = await model.generateContent(prompt);
-        let responseText = result.response.text();
-
-        responseText = responseText.replace(/```json/gi, '').replace(/```/g, '').trim();
-        const startIndex = responseText.indexOf('{');
-        const endIndex = responseText.lastIndexOf('}');
-        
-        if (startIndex !== -1 && endIndex !== -1) {
-            responseText = responseText.substring(startIndex, endIndex + 1);
-        }
-
-        const roadmapData = JSON.parse(responseText);
-
+        // Save to Database (Works for both Plan A and Plan B)
         const newRoadmap = new Roadmap({
             userId: userId,
             goal: goal,
@@ -147,8 +127,8 @@ const generateRoadmap = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Roadmap Generation Error:", error);
-        res.status(500).json({ success: false, message: "Failed to generate roadmap. Please try again." });
+        console.error("Critical Roadmap DB Error:", error);
+        res.status(500).json({ success: false, message: "Server error while saving roadmap." });
     }
 };
 
