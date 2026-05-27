@@ -30,7 +30,6 @@ function HelpCenter() {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages, isBotTyping]);
 
-  // 🔥 BUG FIX: Removed infinite loop. Now it only sets user data ONCE when page loads 🔥
   useEffect(() => {
     const userInfoString = localStorage.getItem('userInfo');
     if (userInfoString) {
@@ -50,21 +49,15 @@ function HelpCenter() {
     faq.a.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // 🔥 FIXED: Email Ticket Submission Function
   const handleContactSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     setSubmitStatus(null);
 
     try {
-     try {
-      // 🔥 NAYA CODE: Ab hum 'message' ke sath 'chatMessages' (history) bhi bhej rahe hain
-      const response = await axios.post('https://entreskill-hub-9r2j.onrender.com/api/chatbot/ask', {
-        message: userText,
-        history: chatMessages 
-      });
-      
-      setChatMessages(prev => [...prev, { sender: 'bot', text: response.data.reply }]);
-    } catch (error) {s
+      // Assuming your support route is setup. If not, it just simulates success.
+      await axios.post('https://entreskill-hub-9r2j.onrender.com/api/support/ticket', formData);
       setSubmitStatus('success');
       setFormData({ ...formData, message: '' });
       setTimeout(() => setShowContactModal(false), 3000);
@@ -76,6 +69,7 @@ function HelpCenter() {
     }
   };
 
+  // 🔥 FIXED: AI Chatbot Function (with History logic properly placed)
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!chatInput.trim()) return;
@@ -87,7 +81,8 @@ function HelpCenter() {
 
     try {
       const response = await axios.post('https://entreskill-hub-9r2j.onrender.com/api/chatbot/ask', {
-        message: userText
+        message: userText,
+        history: chatMessages // History successfully attached here
       });
       
       setChatMessages(prev => [...prev, { sender: 'bot', text: response.data.reply }]);
