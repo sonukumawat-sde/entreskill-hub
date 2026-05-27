@@ -1,5 +1,6 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const BusinessIdea = require('../models/BusinessIdea');
+const Roadmap = require('../models/Roadmap'); // 🔥 DB Model Import kiya
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
@@ -94,4 +95,72 @@ const getAIRecommendations = async (req, res) => {
     }
 };
 
-module.exports = { getAIRecommendations };
+// 🔥 NEW: 5-STEP DETAILED ROADMAP GENERATOR 🔥
+const generateRoadmap = async (req, res) => {
+    try {
+        const { goal, userId } = req.body; // Frontend se Goal aur UserId aayega
+
+        if (!goal || !userId) {
+            return res.status(400).json({ success: false, message: "Goal and User ID are required to generate a roadmap." });
+        }
+
+        const prompt = `
+        Act as an expert career and business mentor. The user wants to achieve this goal: "${goal}".
+        Create a highly detailed, realistic, and strictly 5-step roadmap to achieve this goal.
+        
+        Return ONLY a valid JSON object with the following exact structure, with no markdown formatting or backticks:
+        {
+            "title": "Roadmap to ${goal}",
+            "steps": [
+                {
+                    "stepNumber": 1,
+                    "title": "Clear Step Title",
+                    "description": "Detailed and actionable description of what to do in this step.",
+                    "estimatedTime": "e.g., 2 weeks or 1 month",
+                    "resources": ["Resource 1 name", "Resource 2 name"]
+                }
+            ]
+        }
+        Ensure there are exactly 5 steps in the array.
+        `;
+
+        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+        const result = await model.generateContent(prompt);
+        let responseText = result.response.text();
+
+        // Clean up any potential markdown from Gemini's response
+        responseText = responseText.replace(/```json/gi, '').replace(/```/g, '').trim();
+        const startIndex = responseText.indexOf('{');
+        const endIndex = responseText.lastIndexOf('}');
+        
+        if (startIndex !== -1 && endIndex !== -1) {
+            responseText = responseText.substring(startIndex, endIndex + 1);
+        }
+
+        const roadmapData = JSON.parse(responseText);
+
+        // 🔥 Save to MongoDB 
+        const newRoadmap = new Roadmap({
+            userId: userId,
+            goal: goal,
+            title: roadmapData.title,
+            steps: roadmapData.steps
+        });
+
+        const savedRoadmap = await newRoadmap.save();
+        
+        return res.status(200).json({
+            success: true,
+            roadmap: savedRoadmap // Return saved database instance
+        });
+
+    } catch (error) {
+        console.error("Roadmap Generation Error:", error);
+        res.status(500).json({ success: false, message: "Failed to generate roadmap. Please try again." });
+    }
+};
+
+module.exports = { 
+    getAIRecommendations, 
+    generateRoadmap 
+};

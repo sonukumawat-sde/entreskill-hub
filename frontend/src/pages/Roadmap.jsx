@@ -4,7 +4,10 @@ import axios from 'axios';
 import { FiCheckCircle, FiCircle, FiLock, FiPlayCircle, FiBookOpen, FiVideo, FiStar, FiCalendar, FiArrowRight, FiMap } from 'react-icons/fi';
 
 function Roadmap() {
-  const { id } = useParams();
+  const { id } = useParams(); 
+  // 'id' yahan user ka goal string ho sakta hai (e.g. url encode form mein)
+  // ya fir dashboard se passed state. Hum API ko goal pass karenge.
+  
   const [idea, setIdea] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeStageIndex, setActiveStageIndex] = useState(0);
@@ -29,20 +32,52 @@ function Roadmap() {
       return;
     }
 
-    const fetchIdeaDetails = async () => {
+    const fetchRoadmap = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const config = { headers: { Authorization: `Bearer ${token}` } };
+        const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+        const userId = userInfo._id || "guestUser123"; 
+
+        // Decode the goal from URL parameter (id acts as the goal here)
+        const userGoal = decodeURIComponent(id);
+
+        // 🔥 REAL AI API CALL 🔥
+        const { data } = await axios.post(`https://entreskill-hub-9r2j.onrender.com/api/ai/generate-roadmap`, {
+            goal: userGoal,
+            userId: userId
+        });
         
-        const { data } = await axios.get(`https://entreskill-hub-9r2j.onrender.com/api/recommendations/${id}`, config);
-        setIdea(data);
+        // Data mapping to match your UI structure
+        if(data.success && data.roadmap) {
+            const mappedIdea = {
+                title: data.roadmap.title,
+                category: "AI Generated",
+                description: `A custom 5-step roadmap tailored specifically to help you achieve: ${userGoal}`,
+                roadmap: data.roadmap.steps.map((step, idx) => ({
+                    stageName: step.title,
+                    description: step.description,
+                    // Converting single step into a task for UI compatibility
+                    tasks: [
+                        {
+                            title: `Execute: ${step.title}`,
+                            taskType: "action",
+                            duration: step.estimatedTime
+                        }
+                    ],
+                    resources: step.resources || []
+                }))
+            };
+            setIdea(mappedIdea);
+        } else {
+            setIdea(null);
+        }
         setIsLoading(false);
       } catch (error) {
         console.error("Error fetching roadmap:", error);
         setIsLoading(false);
+        setIdea(null); // Force error state
       }
     };
-    fetchIdeaDetails();
+    fetchRoadmap();
   }, [id]);
 
   // Task ko toggle karne ka logic
@@ -72,9 +107,9 @@ function Roadmap() {
           <div className="w-20 h-20 bg-[#EFF6FF] text-[#2563EB] rounded-full flex items-center justify-center mx-auto mb-6">
             <FiMap size={36} />
           </div>
-          <h2 className="text-[24px] font-extrabold text-[#0F172A] mb-3">No Roadmap Selected</h2>
+          <h2 className="text-[24px] font-extrabold text-[#0F172A] mb-3">No Goal Selected</h2>
           <p className="text-[16px] text-[#475569] font-medium mb-8">
-            You haven't selected a business idea yet. Please go to the Dashboard and choose an idea to build your custom roadmap.
+            Please go to the Dashboard and input a goal to build your custom roadmap.
           </p>
           <Link to="/dashboard" className="w-full inline-flex items-center justify-center gap-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold py-3.5 px-6 rounded-[16px] transition-colors active:scale-95 shadow-md">
             Go to Dashboard <FiArrowRight />
@@ -88,7 +123,7 @@ function Roadmap() {
   if (!idea) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
-        <p className="p-20 text-center font-bold text-red-500 text-xl">Roadmap not found! 😢</p>
+        <p className="p-20 text-center font-bold text-red-500 text-xl">Failed to generate Roadmap. Please try again! 😢</p>
       </div>
     );
   }
@@ -123,10 +158,10 @@ function Roadmap() {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <div>
               <p className="text-[14px] font-bold text-[#2563EB] uppercase tracking-widest mb-1">
-                {idea.category} Business
+                {idea.category}
               </p>
               <h1 className="text-[36px] font-extrabold text-[#0F172A] tracking-tight leading-tight">
-                {idea.title} Roadmap
+                {idea.title}
               </h1>
             </div>
             <div className="bg-[#EFF6FF] px-5 py-3 rounded-[16px] flex items-center gap-3 border border-[#DBEAFE]">
@@ -160,12 +195,12 @@ function Roadmap() {
               </div>
               <h2 className="text-[32px] font-black mb-2 leading-tight">Incredible Work! 🎉</h2>
               <p className="text-emerald-50 font-medium text-[16px] max-w-2xl">
-                You have successfully completed all the steps for the <span className="font-bold text-white">{idea.title}</span> roadmap. You are now fully equipped to launch, grow, and scale your dream business.
+                You have successfully completed all the steps for the <span className="font-bold text-white">{idea.title}</span> roadmap.
               </p>
             </div>
             <div className="shrink-0 w-full md:w-auto mt-4 md:mt-0">
               <Link to="/dashboard" className="w-full inline-flex items-center justify-center gap-2 bg-white text-[#059669] hover:bg-slate-50 font-extrabold py-4 px-8 rounded-[16px] transition-colors active:scale-95 shadow-lg text-[16px]">
-                Explore New Ideas <FiArrowRight />
+                Explore New Goals <FiArrowRight />
               </Link>
             </div>
           </div>
@@ -312,26 +347,28 @@ function Roadmap() {
                   </div>
                </div>
 
-               <button className="w-full bg-[#0F172A] hover:bg-[#1E293B] text-white font-bold py-3 rounded-[16px] flex items-center justify-center gap-2 transition-transform active:scale-95 shadow-md">
+               <Link to="/mentors" className="w-full bg-[#0F172A] hover:bg-[#1E293B] text-white font-bold py-3 rounded-[16px] flex items-center justify-center gap-2 transition-transform active:scale-95 shadow-md">
                  <FiCalendar size={18} /> Book Session (₹299)
-               </button>
+               </Link>
             </div>
 
             <div className="bg-[#EFF6FF] border border-[#DBEAFE] rounded-[24px] p-6">
               <h3 className="text-[18px] font-bold text-[#0F172A] mb-4">Stage Resources</h3>
               <ul className="space-y-3">
-                <li>
-                  <Link to="/learning" className="flex items-center justify-between text-[#2563EB] font-medium hover:underline text-[14px]">
-                    <span className="flex items-center gap-2"><FiBookOpen /> Action Plan Template</span>
-                    <FiArrowRight />
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/learning" className="flex items-center justify-between text-[#2563EB] font-medium hover:underline text-[14px]">
-                    <span className="flex items-center gap-2"><FiBookOpen /> Essential Tools List</span>
-                    <FiArrowRight />
-                  </Link>
-                </li>
+                {activeStage?.resources && activeStage.resources.length > 0 ? (
+                  activeStage.resources.map((resource, i) => (
+                    <li key={i}>
+                      <Link to="/learning" className="flex items-center justify-between text-[#2563EB] font-medium hover:underline text-[14px]">
+                        <span className="flex items-center gap-2"><FiBookOpen /> {resource}</span>
+                        <FiArrowRight />
+                      </Link>
+                    </li>
+                  ))
+                ) : (
+                  <li>
+                    <span className="text-[#64748B] text-sm">No specific resources for this step. Keep executing!</span>
+                  </li>
+                )}
               </ul>
             </div>
 
