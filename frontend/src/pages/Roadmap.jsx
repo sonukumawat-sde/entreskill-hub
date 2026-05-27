@@ -5,9 +5,6 @@ import { FiCheckCircle, FiCircle, FiLock, FiPlayCircle, FiBookOpen, FiVideo, FiS
 
 function Roadmap() {
   const { id } = useParams(); 
-  // 'id' yahan user ka goal string ho sakta hai (e.g. url encode form mein)
-  // ya fir dashboard se passed state. Hum API ko goal pass karenge.
-  
   const [idea, setIdea] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeStageIndex, setActiveStageIndex] = useState(0);
@@ -36,26 +33,29 @@ function Roadmap() {
       try {
         const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
         const userId = userInfo._id || "guestUser123"; 
+        const token = localStorage.getItem('token');
+        const config = { headers: { Authorization: `Bearer ${token}` } };
 
-        // Decode the goal from URL parameter (id acts as the goal here)
-        const userGoal = decodeURIComponent(id);
+        // 🔥 STEP 1: Pehle Database se ID ke through Idea ka asli naam nikalo
+        const { data: ideaDetails } = await axios.get(`https://entreskill-hub-9r2j.onrender.com/api/recommendations/${id}`, config);
+        
+        const actualGoal = ideaDetails.title; 
 
-        // 🔥 REAL AI API CALL 🔥
+        // 🔥 STEP 2: Ab is ASLI naam ko apne naye AI generator ke paas bhejo
         const { data } = await axios.post(`https://entreskill-hub-9r2j.onrender.com/api/ai/generate-roadmap`, {
-            goal: userGoal,
+            goal: actualGoal,
             userId: userId
         });
         
-        // Data mapping to match your UI structure
+        // Data mapping to match UI structure perfectly
         if(data.success && data.roadmap) {
             const mappedIdea = {
                 title: data.roadmap.title,
-                category: "AI Generated",
-                description: `A custom 5-step roadmap tailored specifically to help you achieve: ${userGoal}`,
-                roadmap: data.roadmap.steps.map((step, idx) => ({
+                category: ideaDetails.category || "AI Generated",
+                description: `A custom 5-step roadmap tailored specifically to help you achieve: ${actualGoal}`,
+                roadmap: data.roadmap.steps.map((step) => ({
                     stageName: step.title,
                     description: step.description,
-                    // Converting single step into a task for UI compatibility
                     tasks: [
                         {
                             title: `Execute: ${step.title}`,
@@ -74,7 +74,7 @@ function Roadmap() {
       } catch (error) {
         console.error("Error fetching roadmap:", error);
         setIsLoading(false);
-        setIdea(null); // Force error state
+        setIdea(null); 
       }
     };
     fetchRoadmap();
@@ -128,9 +128,7 @@ function Roadmap() {
     );
   }
 
-  // ==========================================
-  // PROGRESS CALCULATION LOGIC
-  // ==========================================
+  // Progress Calculation
   let totalTasks = 0;
   let completedCount = 0;
 
@@ -150,9 +148,6 @@ function Roadmap() {
   return (
     <div className="min-h-screen bg-[#F8FAFC] font-sans pb-24 selection:bg-blue-100">
       
-      {/* ==========================================
-          PAGE HEADER
-          ========================================== */}
       <header className="bg-white border-b border-slate-200 px-6 py-8 md:py-10">
         <div className="max-w-5xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
@@ -184,9 +179,7 @@ function Roadmap() {
 
       <main className="max-w-5xl mx-auto px-6 py-10">
 
-        {/* ==========================================
-            CELEBRATION BANNER (Shows only on 100% completion)
-            ========================================== */}
+        {/* Celebration Banner */}
         {isFullyCompleted && (
           <div className="mb-12 bg-gradient-to-r from-[#10B981] to-[#059669] rounded-[24px] p-8 text-white shadow-[0_10px_40px_rgba(16,185,129,0.3)] flex flex-col md:flex-row items-center justify-between gap-6 transform transition-all hover:scale-[1.01]">
             <div className="flex-1">
@@ -206,9 +199,7 @@ function Roadmap() {
           </div>
         )}
         
-        {/* ==========================================
-            TIMELINE NAVIGATION
-            ========================================== */}
+        {/* Timeline Navigation */}
         <div className="mb-12 relative">
           <div className="hidden md:block absolute top-1/2 left-0 w-full h-1.5 bg-[#E2E8F0] -translate-y-1/2 rounded-full z-0"></div>
           <div 
@@ -258,9 +249,7 @@ function Roadmap() {
           </div>
         </div>
 
-        {/* ==========================================
-            MAIN CONTENT: TASKS & MENTOR
-            ========================================== */}
+        {/* Main Content */}
         <div className="flex flex-col lg:flex-row gap-8">
           
           <div className="flex-1">
@@ -300,10 +289,7 @@ function Roadmap() {
                       </h3>
                       <div className="flex items-center gap-3 text-[14px] font-medium text-[#64748B]">
                         <span className="flex items-center gap-1.5 bg-[#F1F5F9] px-2 py-0.5 rounded-[6px]">
-                          {task.taskType === 'video' && <FiVideo className="text-[#2563EB]" />}
-                          {task.taskType === 'reading' && <FiBookOpen className="text-[#2563EB]" />}
-                          {task.taskType === 'interactive' && <FiPlayCircle className="text-[#2563EB]" />}
-                          {task.taskType === 'action' && <FiCheckCircle className="text-[#2563EB]" />}
+                          <FiCheckCircle className="text-[#2563EB]" />
                           <span className="capitalize">{task.taskType}</span>
                         </span>
                         <span>•</span>
@@ -312,13 +298,13 @@ function Roadmap() {
                     </div>
 
                     {!isTaskCompleted && (
-                     <Link 
-  to="/learning" 
-  state={{ task: task, ideaId: id, stageIdx: activeStageIndex, taskIdx: index }}
-  className="hidden sm:flex items-center gap-2 bg-[#EFF6FF] hover:bg-[#2563EB] text-[#2563EB] hover:text-white px-5 py-2.5 rounded-[12px] font-bold transition-colors active:scale-95"
->
-  Start <FiArrowRight />
-</Link>
+                      <Link 
+                        to="/learning" 
+                        state={{ task: task, ideaId: id, stageIdx: activeStageIndex, taskIdx: index }}
+                        className="hidden sm:flex items-center gap-2 bg-[#EFF6FF] hover:bg-[#2563EB] text-[#2563EB] hover:text-white px-5 py-2.5 rounded-[12px] font-bold transition-colors active:scale-95"
+                      >
+                        Start <FiArrowRight />
+                      </Link>
                     )}
                   </div>
                 );
