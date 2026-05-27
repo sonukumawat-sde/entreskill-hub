@@ -49,15 +49,16 @@ function HelpCenter() {
     faq.a.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // 🔥 FIXED: Email Ticket Submission Function
+  // 🔥 FIXED: Mock Email Ticket Submission (Jab tak backend na bane)
   const handleContactSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     setSubmitStatus(null);
 
     try {
-      // Assuming your support route is setup. If not, it just simulates success.
-      await axios.post('https://entreskill-hub-9r2j.onrender.com/api/support/ticket', formData);
+      // Backend API abhi nahi bani hai, toh hum 1.5 second ka premium loading effect de rahe hain
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      
       setSubmitStatus('success');
       setFormData({ ...formData, message: '' });
       setTimeout(() => setShowContactModal(false), 3000);
@@ -69,7 +70,7 @@ function HelpCenter() {
     }
   };
 
-  // 🔥 FIXED: AI Chatbot Function (with History logic properly placed)
+  // AI Chatbot Function
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!chatInput.trim()) return;
@@ -82,7 +83,7 @@ function HelpCenter() {
     try {
       const response = await axios.post('https://entreskill-hub-9r2j.onrender.com/api/chatbot/ask', {
         message: userText,
-        history: chatMessages // History successfully attached here
+        history: chatMessages 
       });
       
       setChatMessages(prev => [...prev, { sender: 'bot', text: response.data.reply }]);
