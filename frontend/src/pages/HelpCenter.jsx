@@ -25,7 +25,6 @@ function HelpCenter() {
   ]);
   const chatEndRef = useRef(null);
 
-  // Auto-scroll chat to bottom
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages, isBotTyping]);
@@ -49,15 +48,15 @@ function HelpCenter() {
     faq.a.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // 🔥 FIXED: Mock Email Ticket Submission (Jab tak backend na bane)
+  // 🔥 100% REAL BACKEND CONNECTION 🔥
   const handleContactSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     setSubmitStatus(null);
 
     try {
-      // Backend API abhi nahi bani hai, toh hum 1.5 second ka premium loading effect de rahe hain
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // Hitting the real backend endpoint
+      await axios.post('https://entreskill-hub-9r2j.onrender.com/api/support/ticket', formData);
       
       setSubmitStatus('success');
       setFormData({ ...formData, message: '' });
@@ -70,7 +69,6 @@ function HelpCenter() {
     }
   };
 
-  // AI Chatbot Function
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!chatInput.trim()) return;
