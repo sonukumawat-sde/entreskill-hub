@@ -22,7 +22,7 @@ function Login() {
     setLoading(true);
     setError('');
     try {
-      const { data } = await axios.post('https://entreskill-hub-9r2j.onrender.com/api/auth/login', formData);
+      const { data } = await axios.post('https://entreskill-hub-backend-0sti.onrender.com/api/auth/login', formData);
       localStorage.setItem('token', data.token);
       localStorage.setItem('userInfo', JSON.stringify(data.user));
       navigate('/dashboard');

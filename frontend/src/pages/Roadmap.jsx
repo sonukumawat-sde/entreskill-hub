@@ -37,12 +37,12 @@ function Roadmap() {
         const config = { headers: { Authorization: `Bearer ${token}` } };
 
         // 🔥 STEP 1: Pehle Database se ID ke through Idea ka asli naam nikalo
-        const { data: ideaDetails } = await axios.get(`https://entreskill-hub-9r2j.onrender.com/api/recommendations/${id}`, config);
+        const { data: ideaDetails } = await axios.get(`https://entreskill-hub-backend-0sti.onrender.com/api/recommendations/${id}`, config);
         
         const actualGoal = ideaDetails.title; 
 
         // 🔥 STEP 2: Ab is ASLI naam ko apne naye AI generator ke paas bhejo
-        const { data } = await axios.post(`https://entreskill-hub-9r2j.onrender.com/api/ai/generate-roadmap`, {
+        const { data } = await axios.post(`https://entreskill-hub-backend-0sti.onrender.com/api/ai/generate-roadmap`, {
             goal: actualGoal,
             userId: userId
         });

@@ -44,7 +44,7 @@ function Dashboard() {
 
         // 1. Silent Profile Update 
         try {
-          const { data: profileData } = await axios.get('https://entreskill-hub-9r2j.onrender.com/api/auth/profile', config);
+          const { data: profileData } = await axios.get('https://entreskill-hub-backend-0sti.onrender.com/api/auth/profile', config);
           setUser(profileData);
           localStorage.setItem('userInfo', JSON.stringify(profileData));
           currentSkills = profileData.skills || [];
@@ -56,7 +56,7 @@ function Dashboard() {
         let fetchedIdeas = [];
         if (currentSkills && currentSkills.length > 0) {
           const { data } = await axios.post(
-            'https://entreskill-hub-9r2j.onrender.com/api/ai/match', // 🔥 AI ROUTE
+            'https://entreskill-hub-backend-0sti.onrender.com/api/ai/match', // 🔥 AI ROUTE
             { 
               skills: currentSkills, 
               investmentLevel: user?.investmentLevel || 'Any' // Passing data to Gemini
@@ -65,7 +65,7 @@ function Dashboard() {
           );
           fetchedIdeas = data.recommendations;
         } else {
-          const { data } = await axios.get('https://entreskill-hub-9r2j.onrender.com/api/recommendations/all', config);
+          const { data } = await axios.get('https://entreskill-hub-backend-0sti.onrender.com/api/recommendations/all', config);
           fetchedIdeas = data.ideas;
         }
 
@@ -73,7 +73,7 @@ function Dashboard() {
 
         // 3. Fetch Real Bookmarks from Database
         try {
-          const { data: bookmarkData } = await axios.get('https://entreskill-hub-9r2j.onrender.com/api/bookmarks', config);
+          const { data: bookmarkData } = await axios.get('https://entreskill-hub-backend-0sti.onrender.com/api/bookmarks', config);
           if (bookmarkData.success) {
             setBookmarkedIdeas(bookmarkData.bookmarkedIdeas);
           }
@@ -117,7 +117,7 @@ function Dashboard() {
       }
 
       // Background API Call
-      await axios.post('https://entreskill-hub-9r2j.onrender.com/api/bookmarks/toggle', { idea }, config);
+      await axios.post('https://entreskill-hub-backend-0sti.onrender.com/api/bookmarks/toggle', { idea }, config);
       
     } catch (error) {
       console.error("Error toggling bookmark API:", error);

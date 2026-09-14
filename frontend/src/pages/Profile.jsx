@@ -45,7 +45,7 @@ function Profile() {
       if (token) {
         try {
           const config = { headers: { Authorization: `Bearer ${token}` } };
-          const { data } = await axios.get('https://entreskill-hub-9r2j.onrender.com/api/bookmarks', config);
+          const { data } = await axios.get('https://entreskill-hub-backend-0sti.onrender.com/api/bookmarks', config);
           
           if (data.success) {
             setSavedIdeas(data.bookmarkedIdeas);
@@ -87,7 +87,7 @@ function Profile() {
       
       // Backend ko nayi skills bhejo (ensure backend has this PUT route)
       const { data } = await axios.put(
-        'https://entreskill-hub-9r2j.onrender.com/api/auth/profile', 
+        'https://entreskill-hub-backend-0sti.onrender.com/api/auth/profile', 
         { skills: editedSkills }, 
         config
       );

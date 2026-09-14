@@ -56,7 +56,7 @@ function HelpCenter() {
 
     try {
       // Hitting the real, working backend endpoint exactly as defined in your routes
-      await axios.post('https://entreskill-hub-9r2j.onrender.com/api/support/contact', formData);
+      await axios.post('https://entreskill-hub-backend-0sti.onrender.com/api/support/contact', formData);
       
       setSubmitStatus('success');
       setFormData({ ...formData, message: '' });
@@ -79,7 +79,7 @@ function HelpCenter() {
     setIsBotTyping(true);
 
     try {
-      const response = await axios.post('https://entreskill-hub-9r2j.onrender.com/api/chatbot/ask', {
+      const response = await axios.post('https://entreskill-hub-backend-0sti.onrender.com/api/chatbot/ask', {
         message: userText,
         history: chatMessages 
       });

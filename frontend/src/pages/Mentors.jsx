@@ -37,7 +37,7 @@ function Mentors() {
   useEffect(() => {
     const fetchMentors = async () => {
       try {
-        const res = await axios.get('https://entreskill-hub-9r2j.onrender.com/api/mentors');
+        const res = await axios.get('https://entreskill-hub-backend-0sti.onrender.com/api/mentors');
         
         // Data mapping to match your beautiful UI structure
         const mappedMentors = res.data.mentors.map(m => ({
