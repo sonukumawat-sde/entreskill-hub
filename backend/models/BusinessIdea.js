@@ -22,13 +22,13 @@ const businessIdeaSchema = new mongoose.Schema(
             default: 'Zero (₹0)',
         },
         estimatedCost: {
-            type: String, // Jaise '₹0 - ₹2,000'
-            required: true,
+            type: String, // Jaise '₹0 - ₹2,000' 
+            required: true, 
         },
-        // TUNING 2: Dashboard UI ke matching tags ke liye fields
+        // TUNING 2: Dashboard UI ke matching tags ke liye fields         
         category: {
             type: String,
-            required: true, // Jaise 'Tech SaaS', 'Food & Bev'
+            required: true, // Jaise 'Tech SaaS', 'Food & Bev' 
         },
         demand: {
             type: String,

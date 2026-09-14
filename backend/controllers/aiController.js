@@ -87,6 +87,7 @@ const generateRoadmap = async (req, res) => {
             const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
             const result = await model.generateContent(prompt);
             let responseText = result.response.text();
+    
 
             responseText = responseText.replace(/```json/gi, '').replace(/```/g, '').trim();
             const startIndex = responseText.indexOf('{');

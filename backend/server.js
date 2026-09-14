@@ -2,8 +2,10 @@ const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const connectDB = require('./config/db');
+
 const aiRoutes = require('./routes/aiRoutes');
 const mentorRoutes = require('./routes/mentorRoutes');
+
 // .env file se secret variables load karna
 dotenv.config();
 
@@ -14,24 +16,28 @@ const app = express();
 
 // Middleware setup
 app.use(cors({
-  origin: ["http://localhost:5173", "https://entreskill-hub-teal.vercel.app"],
-  credentials: true
+    origin: [
+        'http://localhost:5173',
+        'https://entreskill-hub-teal.vercel.app'
+    ],
+    credentials: true
 }));
+
 app.use(express.json());
 
-// Routes Links
+// Routes
 const authRoutes = require('./routes/authRoutes');
-const recommendationRoutes = require('./routes/recommendationRoutes'); 
-const bookmarkRoutes = require('./routes/bookmarkRoutes'); // 🔥 TYPO FIXED HERE (No extra 's')
-const supportRoutes = require('./routes/supportRoutes'); 
-const chatBotRoutes = require('./routes/chatBotRoutes'); 
+const recommendationRoutes = require('./routes/recommendationRoutes');
+const bookmarkRoutes = require('./routes/bookmarkRoutes');
+const supportRoutes = require('./routes/supportRoutes');
+const chatBotRoutes = require('./routes/chatBotRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/ai', aiRoutes);
-app.use('/api/recommendations', recommendationRoutes); 
-app.use('/api/bookmarks', bookmarkRoutes); 
-app.use('/api/support', supportRoutes); 
-app.use('/api/chatbot', chatBotRoutes); 
+app.use('/api/recommendations', recommendationRoutes);
+app.use('/api/bookmarks', bookmarkRoutes);
+app.use('/api/support', supportRoutes);
+app.use('/api/chatbot', chatBotRoutes);
 app.use('/api/mentors', mentorRoutes);
 
 // Basic test route
