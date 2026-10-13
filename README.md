@@ -1,29 +1,51 @@
 # EntreSkill Hub
 
-> An AI-assisted entrepreneurship platform that helps aspiring founders turn their skills, budget, and available time into practical business ideas, structured roadmaps, and mentor-led next steps.
+> An AI-assisted entrepreneurship platform that helps users turn their skills, budget, and time commitment into practical business ideas, personalised roadmaps, and mentor-led guidance.
 
-EntreSkill Hub guides users from “What can I build?” to “What should I do next?” Users create an account, complete a skill-and-budget assessment, receive personalised business recommendations, save ideas, generate AI roadmaps, and explore verified mentors.
+EntreSkill Hub is a full-stack web application built to support aspiring entrepreneurs at the idea-to-execution stage. Users can create an account, complete a skills-based onboarding flow, discover suitable business ideas, save favourites, generate AI-powered roadmaps, and explore verified mentors.
 
-## Features
+## Key Features
 
-- **Secure user accounts** — JWT-based registration and login with hashed passwords.
-- **Guided onboarding** — Captures skills, initial budget, and time commitment.
-- **AI business recommendations** — Gemini-powered recommendations with a JavaScript fallback.
-- **Idea discovery and bookmarks** — Browse, filter, search, and save business ideas.
-- **AI-generated roadmaps** — Generates and stores a five-step roadmap for a selected goal.
-- **Roadmap progress tracking** — Users can mark tasks complete; progress is stored locally in the browser.
-- **Mentor directory** — Browse verified mentors and use the session-booking interface.
-- **Support contact form** — Sends support requests through Resend.
-- **AI support assistant** — Gemini-backed chatbot for platform and entrepreneurship guidance.
-- **Responsive interface** — Built with React and Tailwind CSS.
+- **Authentication and user profiles**  
+  Secure registration and login with JWT authentication and bcrypt password hashing.
+
+- **Skills-based onboarding**  
+  Collects a user's skills, budget range, and time commitment to personalise the experience.
+
+- **AI business recommendations**  
+  Uses Google Gemini to match users with relevant business ideas from the MongoDB catalogue. A JavaScript fallback algorithm is used if the AI request is unavailable.
+
+- **Business idea discovery**  
+  Browse business ideas with category filters, keyword search, estimated startup cost, market-demand information, required skills, and AI match reasoning.
+
+- **Bookmarks**  
+  Save and remove business ideas directly from the dashboard. Bookmarks are stored in the user profile.
+
+- **AI-generated roadmaps**  
+  Creates and saves a structured five-step roadmap for a selected business goal. Each roadmap contains step descriptions, estimated timelines, and suggested resources.
+
+- **Roadmap progress tracking**  
+  Users can mark roadmap tasks as complete. Progress is currently saved in browser `localStorage`.
+
+- **Verified mentor directory**  
+  Browse verified mentors, filter by expertise, view experience details, and open the mentor session-booking flow.
+
+- **Razorpay checkout interface**  
+  Includes a client-side Razorpay Checkout flow for mentor-session payments.
+
+- **AI support assistant**  
+  A Gemini-backed chatbot answers questions related to the EntreSkill platform, roadmaps, skill building, and mentorship.
+
+- **Support contact form**  
+  Sends user support requests to the configured inbox through Resend.
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-    U[User] --> F[React + Vite frontend]
-    F -->|Axios / REST API| B[Node.js + Express API]
-    F -->|Local progress| L[Browser localStorage]
+    U[User] --> F[React + Vite Frontend]
+    F -->|Axios REST Requests| B[Node.js + Express API]
+    F -->|Roadmap Progress| L[Browser Local Storage]
     B --> M[(MongoDB)]
     B --> G[Google Gemini]
     B --> R[Resend]
@@ -32,27 +54,29 @@ flowchart LR
 
 ## Technology Stack
 
-| Area | Technologies |
+| Layer | Technologies |
 |---|---|
-| Frontend | React 19, Vite 8, React Router, Axios, Tailwind CSS, React Icons |
+| Frontend | React 19, Vite 8, React Router, Axios |
+| UI | Tailwind CSS, React Icons |
 | Backend | Node.js, Express 5 |
-| Database | MongoDB with Mongoose |
-| Authentication | JSON Web Tokens and bcryptjs |
-| AI | Google Gemini via `@google/generative-ai` |
+| Database | MongoDB, Mongoose |
+| Authentication | JSON Web Tokens, bcryptjs |
+| Artificial Intelligence | Google Gemini |
 | Email | Resend |
 | Payments UI | Razorpay Checkout |
-| Deployment configuration | Vercel frontend configuration and Render API URL |
+| Deployment configuration | Vercel frontend configuration and Render API host references |
 
 ## Application Flow
 
-1. A user registers or signs in.
+1. A user creates an account or signs in.
 2. The onboarding flow records skills, budget, and time commitment.
-3. The dashboard loads relevant business ideas and requests AI-assisted matches.
-4. The user can filter ideas, bookmark favourites, and open a selected idea.
-5. EntreSkill Hub generates a five-step AI roadmap and stores it in MongoDB.
-6. The user tracks roadmap tasks and can explore verified mentors.
+3. The dashboard retrieves the profile and business recommendations.
+4. Gemini selects suitable ideas from the stored idea catalogue; the fallback matcher is used if needed.
+5. The user can search, filter, bookmark, and open business ideas.
+6. Selecting an idea creates a personalised five-step AI roadmap.
+7. The user can track roadmap tasks and explore mentor support.
 
-## Repository Structure
+## Project Structure
 
 ```text
 entreskill-hub/
@@ -70,14 +94,21 @@ entreskill-hub/
 │   ├── middleware/
 │   │   └── authMiddleware.js
 │   ├── models/
+│   │   ├── BusinessIdea.js
+│   │   ├── Mentor.js
+│   │   ├── Roadmap.js
+│   │   ├── Skill.js
+│   │   └── User.js
 │   ├── routes/
 │   ├── server.js
 │   └── package.json
+│
 └── frontend/
     ├── src/
     │   ├── components/
     │   ├── pages/
     │   ├── App.jsx
+    │   ├── index.css
     │   └── main.jsx
     ├── vercel.json
     └── package.json
@@ -102,18 +133,18 @@ cd entreskill-hub
 
 ### 2. Configure the backend
 
-Create `backend/.env` locally. Never commit this file.
+Create a `backend/.env` file:
 
 ```env
 MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=use_a_long_random_secret
+JWT_SECRET=your_secure_jwt_secret
 GEMINI_API_KEY=your_google_gemini_api_key
 RESEND_API_KEY=your_resend_api_key
 EMAIL_USER=your_support_inbox@example.com
 PORT=5000
 ```
 
-Install dependencies and start the API:
+Install dependencies and start the server:
 
 ```bash
 cd backend
@@ -121,11 +152,15 @@ npm install
 npm run dev
 ```
 
-The backend starts at `http://localhost:5000`.
+The backend runs on:
 
-### 3. Configure and start the frontend
+```text
+http://localhost:5000
+```
 
-Open another terminal:
+### 3. Start the frontend
+
+Open a second terminal:
 
 ```bash
 cd frontend
@@ -133,9 +168,13 @@ npm install
 npm run dev
 ```
 
-Vite serves the frontend at `http://localhost:5173`.
+The Vite frontend runs on:
 
-> **Local-development note:** The current frontend uses the deployed Render API URL. To connect it to your local backend, replace those URLs with `http://localhost:5000` or introduce a `VITE_API_BASE_URL` environment variable.
+```text
+http://localhost:5173
+```
+
+> **Local development note:** Some frontend pages currently reference the deployed Render API URL directly. To run the complete project locally, replace those URLs with `http://localhost:5000` or move the API base URL into a Vite environment variable.
 
 ## Available Scripts
 
@@ -155,77 +194,93 @@ npm start
 npm run dev
 ```
 
-## API Overview
+## API Reference
+
+### Health Check
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/` | Returns a basic API status message |
 
 ### Authentication
 
-| Method | Endpoint | Access | Purpose |
+| Method | Endpoint | Access | Description |
 |---|---|---|---|
-| `POST` | `/api/auth/register` | Public | Create an account and receive a JWT |
+| `POST` | `/api/auth/register` | Public | Register a new user and return a JWT |
 | `POST` | `/api/auth/login` | Public | Authenticate an existing user |
-| `GET` | `/api/auth/profile` | Protected | Retrieve the current profile |
-| `POST` | `/api/auth/onboarding` | Protected | Save onboarding data |
-| `PUT` | `/api/auth/profile` | Protected | Update profile details |
+| `GET` | `/api/auth/profile` | Protected | Get the current user profile |
+| `POST` | `/api/auth/onboarding` | Protected | Save skills, budget, and time commitment |
+| `PUT` | `/api/auth/profile` | Protected | Update user profile details |
 
-### Recommendations and Roadmaps
+### AI and Recommendations
 
-| Method | Endpoint | Access | Purpose |
+| Method | Endpoint | Access | Description |
 |---|---|---|---|
-| `POST` | `/api/ai/match` | Public | Return AI-assisted business recommendations |
-| `POST` | `/api/ai/generate-roadmap` | Public | Generate and store a five-step roadmap |
-| `GET` | `/api/recommendations/seed` | Public | Seed 12 sample business ideas |
-| `POST` | `/api/recommendations/match` | Protected | Return matches based on skills |
+| `POST` | `/api/ai/match` | Public | Get AI-assisted business recommendations |
+| `POST` | `/api/ai/generate-roadmap` | Public | Generate and save a five-step roadmap |
+| `GET` | `/api/recommendations/seed` | Public | Seed the database with 12 business ideas |
+| `POST` | `/api/recommendations/match` | Protected | Match ideas using user skills |
 | `GET` | `/api/recommendations/all` | Protected | Retrieve all business ideas |
 | `GET` | `/api/recommendations/:id` | Protected | Retrieve one business idea |
 
-### Bookmarks, Mentors, and Support
+### Bookmarks
 
-| Method | Endpoint | Access | Purpose |
+| Method | Endpoint | Access | Description |
 |---|---|---|---|
-| `GET` | `/api/bookmarks` | Protected | Retrieve saved ideas |
-| `POST` | `/api/bookmarks/toggle` | Protected | Add or remove a saved idea |
-| `POST` | `/api/mentors/register` | Public | Register a mentor |
+| `GET` | `/api/bookmarks` | Protected | Retrieve bookmarked business ideas |
+| `POST` | `/api/bookmarks/toggle` | Protected | Add or remove a bookmarked idea |
+
+### Mentors, Support, and Chat
+
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `POST` | `/api/mentors/register` | Public | Register a mentor for verification |
 | `GET` | `/api/mentors` | Public | Retrieve verified mentors |
-| `GET` | `/api/mentors/:id` | Public | Retrieve a mentor |
-| `POST` | `/api/chatbot/ask` | Public | Send a chatbot message |
-| `POST` | `/api/support/contact` | Public | Submit a support request |
+| `GET` | `/api/mentors/:id` | Public | Retrieve a mentor by ID |
+| `POST` | `/api/chatbot/ask` | Public | Send a question to the AI assistant |
+| `POST` | `/api/support/contact` | Public | Send a support request through Resend |
 
-## Data Model
+## Data Models
 
-The application uses MongoDB collections for:
-
-- **Users** — Authentication, role, skills, budget, bookmarks, mentor credits, and streaks.
-- **Business ideas** — Descriptions, required skills, costs, categories, demand, and roadmaps.
-- **Roadmaps** — User-specific AI-generated five-step plans.
-- **Mentors** — Mentor details, expertise, experience, and verification status.
-- **Skills** — Skill records for categorisation.
+| Model | Purpose |
+|---|---|
+| `User` | Stores account details, skills, onboarding data, bookmarks, mentor credits, and streaks |
+| `BusinessIdea` | Stores startup ideas, required skills, costs, categories, demand, and roadmaps |
+| `Roadmap` | Stores AI-generated user-specific roadmaps |
+| `Mentor` | Stores mentor details, expertise, experience, bio, LinkedIn profile, and verification status |
+| `Skill` | Stores reusable skill names and categories |
 
 ## Current Implementation Notes
 
-- Gemini recommendations and roadmaps include fallback logic if AI requests fail.
-- Roadmap completion is currently stored in browser `localStorage`.
-- The mentor directory displays verified mentors.
-- Razorpay currently uses a client-side test checkout flow.
-- Backend CORS allows the local Vite app and deployed Vercel frontend.
+- Gemini is used for AI matching, roadmap generation, and chatbot responses.
+- AI recommendation and roadmap generation include fallback logic if Gemini fails.
+- The dashboard can filter ideas by category and search text.
+- Bookmark data is stored in the authenticated user document.
+- Roadmap completion state is stored locally in the browser.
+- Only mentors with `isVerified: true` appear in the mentor directory.
+- Razorpay Checkout is currently initiated from the frontend; backend payment verification and booking persistence are not part of the current codebase.
+- The frontend includes Vercel configuration, while the API URLs reference a Render-hosted backend.
 
-## Security and Repository Hygiene
+## Development Status
 
-Before production deployment:
+The frontend includes linting and production build scripts:
 
-- Never commit `.env` files or API keys.
-- Add `node_modules/` to `.gitignore`.
-- Protect or remove the public database seed endpoint.
-- Store frontend API URLs in environment configuration.
-- Add server-side Razorpay payment verification.
-- Add rate limiting, input validation, and automated tests.
+```bash
+cd frontend
+npm run lint
+npm run build
+```
 
-## Contributing
+An automated test suite is not currently configured in the repository.
 
-1. Create a feature branch.
-2. Keep commits focused and descriptive.
-3. Run `npm run lint` and `npm run build` in `frontend/`.
-4. Never commit credentials, generated dependencies, or build output.
+## Security Notes
+
+- Do not commit `.env` files or secret API keys.
+- Use a strong `JWT_SECRET`.
+- Restrict the public seed endpoint before production deployment.
+- Add backend payment verification before accepting production payments.
+- Add rate limiting and request validation for a production environment.
 
 ## License
 
-No license file is currently included. Add an appropriate license before defining reuse or redistribution terms.
+No license file is currently included in the repository.
